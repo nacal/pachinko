@@ -131,7 +131,7 @@ function doSpin(): void {
   btnSpin.disabled = true;
   totalSpins++;
 
-  const result = draw(machine, rng, gameState);
+  const result = draw(machine, gameState, rng);
   gameState = result.nextState;
 
   const renderInput: DrawResultInput = {
