@@ -27,8 +27,8 @@ export type ReelPhase =
   | "idle"
   | "spinning"
   | "stopping-left"
-  | "stopping-center"
   | "stopping-right"
+  | "stopping-center"
   | "result";
 
 export interface ReelAnimationState {

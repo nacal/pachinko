@@ -39,8 +39,8 @@ const PHASE_ORDER: readonly ReelPhase[] = [
   "idle",
   "spinning",
   "stopping-left",
-  "stopping-center",
   "stopping-right",
+  "stopping-center",
   "result",
 ];
 

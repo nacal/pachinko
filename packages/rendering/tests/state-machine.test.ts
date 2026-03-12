@@ -80,22 +80,21 @@ describe("tick", () => {
     expect(next.phase).toBe("stopping-left");
   });
 
-  it("transitions stopping-left → stopping-center", () => {
+  it("transitions stopping-left → stopping-right", () => {
     let state = startSpin(hazureResult, 0);
     state = tick(state, spinDuration, timing);
     expect(state.phase).toBe("stopping-left");
     state = tick(state, state.phaseStartTime + stopDuration, timing);
-    expect(state.phase).toBe("stopping-center");
+    expect(state.phase).toBe("stopping-right");
   });
 
-  it("transitions stopping-center → stopping-right (no reach)", () => {
+  it("transitions stopping-right → stopping-center", () => {
     let state = startSpin(hazureResult, 0);
-    // Advance through spinning and stopping-left
     state = tick(state, spinDuration, timing);
     state = tick(state, state.phaseStartTime + stopDuration, timing);
-    expect(state.phase).toBe("stopping-center");
-    state = tick(state, state.phaseStartTime + stopDuration, timing);
     expect(state.phase).toBe("stopping-right");
+    state = tick(state, state.phaseStartTime + stopDuration, timing);
+    expect(state.phase).toBe("stopping-center");
   });
 
   it("uses reachSlowdownDuration for stopping-center when isReach", () => {
@@ -103,22 +102,20 @@ describe("tick", () => {
     let state = startSpin(reachHazureResult, 0);
     state = tick(state, spinDuration, timing);
     state = tick(state, state.phaseStartTime + stopDuration, timing);
+    state = tick(state, state.phaseStartTime + stopDuration, timing);
     expect(state.phase).toBe("stopping-center");
 
-    // Should NOT advance with normal stop duration
-    const midState = tick(state, state.phaseStartTime + stopDuration, timing);
-    // reach duration > stop duration, so it might or might not advance
     // The key test: it should advance after reachDuration
     const afterReach = tick(state, state.phaseStartTime + reachDuration, timing);
-    expect(afterReach.phase).toBe("stopping-right");
+    expect(afterReach.phase).toBe("result");
   });
 
-  it("transitions stopping-right → result", () => {
+  it("transitions stopping-center → result", () => {
     let state = startSpin(hazureResult, 0);
     state = tick(state, spinDuration, timing);
     state = tick(state, state.phaseStartTime + stopDuration, timing);
     state = tick(state, state.phaseStartTime + stopDuration, timing);
-    expect(state.phase).toBe("stopping-right");
+    expect(state.phase).toBe("stopping-center");
     state = tick(state, state.phaseStartTime + stopDuration, timing);
     expect(state.phase).toBe("result");
   });
@@ -141,8 +138,8 @@ describe("tick", () => {
     expect(phases).toEqual([
       "spinning",
       "stopping-left",
-      "stopping-center",
       "stopping-right",
+      "stopping-center",
       "result",
     ]);
   });

@@ -39,20 +39,20 @@ function computeReelSpeed(
       return 1;
     }
 
-    case "stopping-center": {
-      if (reelIndex <= 0) return 0;
-      if (reelIndex === 1) {
-        const duration = isReach ? timing.reachSlowdownDuration : timing.stopInterval;
-        const p = progress(elapsed, duration);
-        return isReach ? 1 - easeInOutSine(p) : 1 - easeOutQuad(p);
+    case "stopping-right": {
+      if (reelIndex === 0) return 0;
+      if (reelIndex === 2) {
+        const p = progress(elapsed, timing.stopInterval);
+        return 1 - easeOutQuad(p);
       }
       return 1;
     }
 
-    case "stopping-right": {
-      if (reelIndex <= 1) return 0;
-      const p = progress(elapsed, timing.stopInterval);
-      return 1 - easeOutQuad(p);
+    case "stopping-center": {
+      if (reelIndex !== 1) return 0;
+      const duration = isReach ? timing.reachSlowdownDuration : timing.stopInterval;
+      const p = progress(elapsed, duration);
+      return isReach ? 1 - easeInOutSine(p) : 1 - easeOutQuad(p);
     }
 
     default:
