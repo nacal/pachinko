@@ -89,7 +89,7 @@ function renderFrame(
       drawReel(ctx, layout, visible, 0, style);
     } else {
       const scrollSpeed = speed * 0.3;
-      const scrollOffset = ((now * scrollSpeed) / 16) % symbols.length;
+      const scrollOffset = (-(now * scrollSpeed) / 16 % symbols.length + symbols.length) % symbols.length;
       const visible = getVisibleSymbols(
         { symbols, targetIndex: 0 },
         scrollOffset,
