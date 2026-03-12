@@ -272,6 +272,65 @@ section h2 {
 .outcome-koatari { color: var(--gold); }
 .outcome-hazure { color: var(--text-muted); }
 
+/* ─── Mode banner ─── */
+
+.demo-mode-banner {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  width: 100%;
+  max-width: 480px;
+  justify-content: center;
+  border: 2px solid var(--border);
+  background: var(--bg-card);
+  transition: all 0.3s;
+}
+
+.demo-mode-banner .mode-label {
+  font-size: 1.3rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+}
+
+.demo-mode-banner .mode-detail {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.demo-mode-banner.mode-normal {
+  border-color: var(--border);
+}
+
+.demo-mode-banner.mode-normal .mode-label {
+  color: var(--text-muted);
+}
+
+.demo-mode-banner.mode-kakuhen {
+  border-color: var(--accent);
+  background: rgba(255, 68, 68, 0.1);
+  animation: kakuhen-pulse 1.5s ease-in-out infinite;
+}
+
+.demo-mode-banner.mode-kakuhen .mode-label {
+  color: var(--accent);
+}
+
+.demo-mode-banner.mode-jitan {
+  border-color: var(--gold);
+  background: rgba(255, 215, 0, 0.08);
+}
+
+.demo-mode-banner.mode-jitan .mode-label {
+  color: var(--gold);
+}
+
+@keyframes kakuhen-pulse {
+  0%, 100% { box-shadow: 0 0 8px rgba(255, 68, 68, 0.2); }
+  50% { box-shadow: 0 0 20px rgba(255, 68, 68, 0.5); }
+}
+
 /* ─── API page ─── */
 
 .api-section {

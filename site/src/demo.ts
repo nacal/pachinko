@@ -97,11 +97,33 @@ const btnSkip = document.getElementById("btn-skip") as HTMLButtonElement;
 const statOutcome = document.getElementById("stat-outcome")!;
 const statReels = document.getElementById("stat-reels")!;
 const statReach = document.getElementById("stat-reach")!;
-const statMode = document.getElementById("stat-mode")!;
+const statBonus = document.getElementById("stat-bonus")!;
 const statSpins = document.getElementById("stat-spins")!;
 const statConsecutive = document.getElementById("stat-consecutive")!;
+const modeBanner = document.getElementById("mode-banner")!;
+const modeLabel = document.getElementById("mode-label")!;
+const modeDetail = document.getElementById("mode-detail")!;
 
 // ─── UI update ───
+
+const MODE_LABELS: Record<string, string> = {
+  normal: "通常",
+  kakuhen: "確変",
+  jitan: "時短",
+};
+
+function updateModeBanner(state: GameState): void {
+  modeBanner.className = `demo-mode-banner mode-${state.mode}`;
+  modeLabel.textContent = MODE_LABELS[state.mode] ?? state.mode;
+
+  if (state.mode === "kakuhen") {
+    modeDetail.textContent = `1/3 確率`;
+  } else if (state.mode === "jitan" && state.remainingSpins != null) {
+    modeDetail.textContent = `残り ${state.remainingSpins} 回転`;
+  } else {
+    modeDetail.textContent = "";
+  }
+}
 
 function updateStats(result: DrawResult): void {
   const outcomeLabel =
@@ -113,10 +135,12 @@ function updateStats(result: DrawResult): void {
   statOutcome.className = `stat-value ${outcomeClass}`;
 
   statReels.textContent = `${result.reels.left.label}  ${result.reels.center.label}  ${result.reels.right.label}`;
-  statReach.textContent = result.isReach ? "Yes" : "No";
-  statMode.textContent = result.nextState.mode;
+  statReach.textContent = result.isReach ? "あり" : "なし";
+  statBonus.textContent = result.bonusType ? result.bonusType.label : "—";
   statSpins.textContent = String(totalSpins);
   statConsecutive.textContent = String(result.nextState.consecutiveBonuses);
+
+  updateModeBanner(result.nextState);
 }
 
 // ─── State ───
@@ -185,4 +209,5 @@ async function init(): Promise<void> {
 
 // Disable spin until images loaded
 btnSpin.disabled = true;
+updateModeBanner(gameState);
 init();
