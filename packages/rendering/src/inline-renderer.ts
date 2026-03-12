@@ -3,55 +3,162 @@ import type {
   ReelRenderer,
   DrawResultInput,
   ReelPhase,
+  ReelAnimationState,
+  TimingConfig,
+  StyleConfig,
 } from "./types.js";
-import type { WorkerInMessage } from "./messages.js";
-import { createWorkerRenderer } from "./worker-renderer.js";
+import { createIdleState, startSpin, skipToResult, tick, phaseElapsed } from "./state-machine.js";
+import { resolveTiming, resolveStyle, computeReelLayouts, VISIBLE_SYMBOL_COUNT } from "./constants.js";
+import { createReelStrip, getVisibleSymbols, computeTargetOffset } from "./reel-strip.js";
+import { easeInQuad, easeOutQuad, easeInOutSine, progress } from "./animation.js";
+import { drawBackground, drawReel, drawReelDividers, drawHighlight } from "./draw-utils.js";
+
+function computeReelSpeed(
+  reelIndex: number,
+  state: ReelAnimationState,
+  elapsed: number,
+  timing: TimingConfig,
+): number {
+  const { phase, isReach } = state;
+
+  switch (phase) {
+    case "idle":
+    case "result":
+      return 0;
+
+    case "spinning": {
+      const spinUp = progress(elapsed, timing.spinUpDuration);
+      return easeInQuad(spinUp);
+    }
+
+    case "stopping-left": {
+      if (reelIndex === 0) {
+        const p = progress(elapsed, timing.stopInterval);
+        return 1 - easeOutQuad(p);
+      }
+      return 1;
+    }
+
+    case "stopping-center": {
+      if (reelIndex <= 0) return 0;
+      if (reelIndex === 1) {
+        const duration = isReach ? timing.reachSlowdownDuration : timing.stopInterval;
+        const p = progress(elapsed, duration);
+        return isReach ? 1 - easeInOutSine(p) : 1 - easeOutQuad(p);
+      }
+      return 1;
+    }
+
+    case "stopping-right": {
+      if (reelIndex <= 1) return 0;
+      const p = progress(elapsed, timing.stopInterval);
+      return 1 - easeOutQuad(p);
+    }
+
+    default:
+      return 0;
+  }
+}
+
+function renderFrame(
+  ctx: CanvasRenderingContext2D,
+  width: number,
+  height: number,
+  animState: ReelAnimationState,
+  symbols: readonly import("./types.js").SymbolSpec[],
+  timing: TimingConfig,
+  style: StyleConfig,
+  now: number,
+): void {
+  const layouts = computeReelLayouts(width, height);
+  const elapsed = phaseElapsed(animState, now);
+
+  drawBackground(ctx, width, height, style);
+
+  const reelKeys = ["left", "center", "right"] as const;
+
+  for (let i = 0; i < 3; i++) {
+    const layout = layouts[i]!;
+    const speed = computeReelSpeed(i, animState, elapsed, timing);
+
+    if (animState.phase === "result" || (speed === 0 && animState.result)) {
+      const target = animState.result!.reels[reelKeys[i]!];
+      const strip = createReelStrip(symbols, target);
+      const targetOffset = computeTargetOffset(strip, VISIBLE_SYMBOL_COUNT);
+      const visible = getVisibleSymbols(strip, targetOffset, VISIBLE_SYMBOL_COUNT);
+      drawReel(ctx, layout, visible, 0, style);
+    } else {
+      const scrollSpeed = speed * 0.3;
+      const scrollOffset = ((now * scrollSpeed) / 16) % symbols.length;
+      const visible = getVisibleSymbols(
+        { symbols, targetIndex: 0 },
+        scrollOffset,
+        VISIBLE_SYMBOL_COUNT + 1,
+      );
+      const subOffset = scrollOffset % 1;
+      drawReel(ctx, layout, visible, subOffset, style);
+    }
+  }
+
+  drawReelDividers(ctx, layouts, style);
+
+  const centerY = layouts[0]!.symbolHeight * Math.floor(VISIBLE_SYMBOL_COUNT / 2);
+  drawHighlight(ctx, width, centerY, layouts[0]!.symbolHeight, style);
+}
 
 /**
  * Create a reel renderer that runs on the main thread.
- * Fallback for environments without OffscreenCanvas or Worker support.
+ * Draws directly to the provided CanvasRenderingContext2D.
  */
 export function createInlineReelRenderer(
   ctx: CanvasRenderingContext2D,
   config: RenderConfig,
 ): ReelRenderer {
   const canvas = ctx.canvas;
-  const offscreen = new OffscreenCanvas(canvas.width, canvas.height);
-  const offCtx = offscreen.getContext("2d");
+  const timing = resolveTiming(config.timing);
+  const style = resolveStyle(config.style);
+  const symbols = config.symbolStrip;
 
+  let animState: ReelAnimationState = createIdleState();
+  let animFrameId: number | null = null;
   let completeCallbacks: Array<() => void> = [];
   let phaseCallbacks: Array<(phase: ReelPhase) => void> = [];
   let destroyed = false;
 
-  // Use the worker renderer logic with a direct postMessage mock
-  const renderer = createWorkerRenderer(
-    offscreen,
-    config,
-    canvas.width,
-    canvas.height,
-    (msg) => {
-      if (destroyed) return;
-      if (msg.type === "phase-change") {
-        for (const cb of phaseCallbacks) cb(msg.phase);
-      } else if (msg.type === "complete") {
+  // Draw initial idle frame
+  renderFrame(ctx, canvas.width, canvas.height, animState, symbols, timing, style, 0);
+
+  function loop(now: number): void {
+    if (destroyed) return;
+
+    const prevPhase = animState.phase;
+    animState = tick(animState, now, timing);
+
+    if (animState.phase !== prevPhase) {
+      for (const cb of phaseCallbacks) cb(animState.phase);
+      if (animState.phase === "result") {
         for (const cb of completeCallbacks) cb();
       }
-    },
-  );
+    }
 
-  // Mirror offscreen to visible canvas on each frame
-  let mirrorId: number | null = null;
-  function mirrorLoop(): void {
-    if (destroyed) return;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.drawImage(offscreen, 0, 0);
-    mirrorId = requestAnimationFrame(mirrorLoop);
+    renderFrame(ctx, canvas.width, canvas.height, animState, symbols, timing, style, now);
+
+    if (animState.phase !== "idle" && animState.phase !== "result") {
+      animFrameId = requestAnimationFrame(loop);
+    } else {
+      animFrameId = null;
+    }
   }
 
   return {
     spin(result: DrawResultInput): void {
-      renderer.handleMessage({ type: "spin", result });
-      if (mirrorId === null) mirrorLoop();
+      if (destroyed) return;
+      if (animFrameId !== null) {
+        cancelAnimationFrame(animFrameId);
+      }
+      animState = startSpin(result, performance.now());
+      for (const cb of phaseCallbacks) cb("spinning");
+      animFrameId = requestAnimationFrame(loop);
     },
 
     onComplete(callback: () => void): void {
@@ -63,22 +170,29 @@ export function createInlineReelRenderer(
     },
 
     skipToResult(): void {
-      renderer.handleMessage({ type: "skip" });
+      if (destroyed) return;
+      if (animFrameId !== null) {
+        cancelAnimationFrame(animFrameId);
+        animFrameId = null;
+      }
+      animState = skipToResult(animState);
+      renderFrame(ctx, canvas.width, canvas.height, animState, symbols, timing, style, performance.now());
+      for (const cb of phaseCallbacks) cb("result");
+      for (const cb of completeCallbacks) cb();
     },
 
     resize(width: number, height: number): void {
-      offscreen.width = width;
-      offscreen.height = height;
-      renderer.handleMessage({ type: "resize", width, height });
+      canvas.width = width;
+      canvas.height = height;
+      renderFrame(ctx, width, height, animState, symbols, timing, style, performance.now());
     },
 
     destroy(): void {
       destroyed = true;
-      if (mirrorId !== null) {
-        cancelAnimationFrame(mirrorId);
-        mirrorId = null;
+      if (animFrameId !== null) {
+        cancelAnimationFrame(animFrameId);
+        animFrameId = null;
       }
-      renderer.handleMessage({ type: "destroy" });
       completeCallbacks = [];
       phaseCallbacks = [];
     },
