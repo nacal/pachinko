@@ -136,6 +136,18 @@ function animationLoop(rs: RendererState): void {
 
     if (rs.animState.phase !== prevPhase) {
       rs.postMessage({ type: "phase-change", phase: rs.animState.phase });
+
+      if (rs.animState.result) {
+        const reels = rs.animState.result.reels;
+        if (rs.animState.phase === "stopping-right" && prevPhase === "stopping-left") {
+          rs.postMessage({ type: "reel-stop", reel: "left", symbol: reels.left });
+        } else if (rs.animState.phase === "stopping-center" && prevPhase === "stopping-right") {
+          rs.postMessage({ type: "reel-stop", reel: "right", symbol: reels.right });
+        } else if (rs.animState.phase === "result" && prevPhase === "stopping-center") {
+          rs.postMessage({ type: "reel-stop", reel: "center", symbol: reels.center });
+        }
+      }
+
       if (rs.animState.phase === "result") {
         rs.postMessage({ type: "complete" });
       }
@@ -197,6 +209,14 @@ export function createWorkerRenderer(
           }
           rs.animState = skipToResult(rs.animState);
           renderFrame(rs, performance.now());
+
+          if (rs.animState.result) {
+            const reels = rs.animState.result.reels;
+            rs.postMessage({ type: "reel-stop", reel: "left", symbol: reels.left });
+            rs.postMessage({ type: "reel-stop", reel: "right", symbol: reels.right });
+            rs.postMessage({ type: "reel-stop", reel: "center", symbol: reels.center });
+          }
+
           rs.postMessage({ type: "phase-change", phase: "result" });
           rs.postMessage({ type: "complete" });
           break;

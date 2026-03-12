@@ -5,6 +5,7 @@ export type {
   DrawOutcome,
   DrawResultInput,
   ReelPhase,
+  ReelPosition,
   ReelAnimationState,
   ReelStrip,
   ReelLayout,

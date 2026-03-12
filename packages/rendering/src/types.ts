@@ -32,6 +32,8 @@ export type ReelPhase =
   | "stopping-center"
   | "result";
 
+export type ReelPosition = "left" | "center" | "right";
+
 export interface ReelAnimationState {
   readonly phase: ReelPhase;
   readonly startTime: number;
@@ -96,6 +98,8 @@ export interface ReelRenderer {
   onComplete(callback: () => void): void;
   /** Register callback fired on phase transitions */
   onPhaseChange(callback: (phase: ReelPhase) => void): void;
+  /** Register callback fired when an individual reel stops */
+  onReelStop(callback: (reel: ReelPosition, symbol: SymbolSpec) => void): void;
   /** Force stop immediately (skip animation) */
   skipToResult(): void;
   /** Resize the renderer to match canvas size changes */

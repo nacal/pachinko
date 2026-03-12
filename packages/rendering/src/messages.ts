@@ -1,4 +1,4 @@
-import type { DrawResultInput, ReelPhase, RenderConfig } from "./types.js";
+import type { DrawResultInput, ReelPhase, ReelPosition, RenderConfig, SymbolSpec } from "./types.js";
 
 // ─── Main thread → Worker ───
 
@@ -14,6 +14,7 @@ export type WorkerInMessage =
 export type WorkerOutMessage =
   | { readonly type: "ready" }
   | { readonly type: "phase-change"; readonly phase: ReelPhase }
+  | { readonly type: "reel-stop"; readonly reel: ReelPosition; readonly symbol: SymbolSpec }
   | { readonly type: "complete" };
 
 /** Type guard for incoming worker messages */

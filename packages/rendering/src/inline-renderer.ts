@@ -3,7 +3,9 @@ import type {
   ReelRenderer,
   DrawResultInput,
   ReelPhase,
+  ReelPosition,
   ReelAnimationState,
+  SymbolSpec,
   TimingConfig,
   StyleConfig,
 } from "./types.js";
@@ -123,6 +125,7 @@ export function createInlineReelRenderer(
   let animFrameId: number | null = null;
   let completeCallbacks: Array<() => void> = [];
   let phaseCallbacks: Array<(phase: ReelPhase) => void> = [];
+  let reelStopCallbacks: Array<(reel: ReelPosition, symbol: SymbolSpec) => void> = [];
   let destroyed = false;
 
   // Draw initial idle frame
@@ -136,6 +139,19 @@ export function createInlineReelRenderer(
 
     if (animState.phase !== prevPhase) {
       for (const cb of phaseCallbacks) cb(animState.phase);
+
+      // Fire onReelStop when entering a stopping phase (reel just stopped)
+      if (animState.result) {
+        const reels = animState.result.reels;
+        if (animState.phase === "stopping-right" && prevPhase === "stopping-left") {
+          for (const cb of reelStopCallbacks) cb("left", reels.left);
+        } else if (animState.phase === "stopping-center" && prevPhase === "stopping-right") {
+          for (const cb of reelStopCallbacks) cb("right", reels.right);
+        } else if (animState.phase === "result" && prevPhase === "stopping-center") {
+          for (const cb of reelStopCallbacks) cb("center", reels.center);
+        }
+      }
+
       if (animState.phase === "result") {
         for (const cb of completeCallbacks) cb();
       }
@@ -169,6 +185,10 @@ export function createInlineReelRenderer(
       phaseCallbacks.push(callback);
     },
 
+    onReelStop(callback: (reel: ReelPosition, symbol: SymbolSpec) => void): void {
+      reelStopCallbacks.push(callback);
+    },
+
     skipToResult(): void {
       if (destroyed) return;
       if (animFrameId !== null) {
@@ -177,6 +197,15 @@ export function createInlineReelRenderer(
       }
       animState = skipToResult(animState);
       renderFrame(ctx, canvas.width, canvas.height, animState, symbols, timing, style, performance.now());
+
+      // Fire all reel stop callbacks at once
+      if (animState.result) {
+        const reels = animState.result.reels;
+        for (const cb of reelStopCallbacks) cb("left", reels.left);
+        for (const cb of reelStopCallbacks) cb("right", reels.right);
+        for (const cb of reelStopCallbacks) cb("center", reels.center);
+      }
+
       for (const cb of phaseCallbacks) cb("result");
       for (const cb of completeCallbacks) cb();
     },
@@ -195,6 +224,7 @@ export function createInlineReelRenderer(
       }
       completeCallbacks = [];
       phaseCallbacks = [];
+      reelStopCallbacks = [];
     },
   };
 }

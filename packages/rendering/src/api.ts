@@ -3,6 +3,8 @@ import type {
   ReelRenderer,
   DrawResultInput,
   ReelPhase,
+  ReelPosition,
+  SymbolSpec,
 } from "./types.js";
 import type { WorkerOutMessage } from "./messages.js";
 import { isWorkerOutMessage } from "./messages.js";
@@ -39,6 +41,7 @@ function createWorkerReelRenderer(
   const offscreen = canvas.transferControlToOffscreen();
   let completeCallbacks: Array<() => void> = [];
   let phaseCallbacks: Array<(phase: ReelPhase) => void> = [];
+  let reelStopCallbacks: Array<(reel: ReelPosition, symbol: SymbolSpec) => void> = [];
   let destroyed = false;
 
   // Create worker from provided URL or inline blob
@@ -59,6 +62,8 @@ function createWorkerReelRenderer(
     const msg = e.data as WorkerOutMessage;
     if (msg.type === "phase-change") {
       for (const cb of phaseCallbacks) cb(msg.phase);
+    } else if (msg.type === "reel-stop") {
+      for (const cb of reelStopCallbacks) cb(msg.reel, msg.symbol);
     } else if (msg.type === "complete") {
       for (const cb of completeCallbacks) cb();
     }
@@ -90,6 +95,10 @@ function createWorkerReelRenderer(
       phaseCallbacks.push(callback);
     },
 
+    onReelStop(callback: (reel: ReelPosition, symbol: SymbolSpec) => void): void {
+      reelStopCallbacks.push(callback);
+    },
+
     skipToResult(): void {
       if (destroyed) return;
       worker.postMessage({ type: "skip" });
@@ -106,6 +115,7 @@ function createWorkerReelRenderer(
       worker.terminate();
       completeCallbacks = [];
       phaseCallbacks = [];
+      reelStopCallbacks = [];
     },
   };
 }
