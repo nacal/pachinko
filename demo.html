@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Demo — pachinko</title>
+  <script type="module" crossorigin src="/pachinko/assets/demo-D7Bf2jey.js"></script>
+  <link rel="modulepreload" crossorigin href="/pachinko/assets/style-BRB7cevd.js">
+  <link rel="stylesheet" crossorigin href="/pachinko/assets/style-f4yDVOgV.css">
+</head>
+<body>
+  <nav>
+    <div class="nav-inner">
+      <a href="./" class="logo">pachinko</a>
+      <a href="./">Home</a>
+      <a href="./demo.html" class="active">Demo</a>
+      <a href="./api.html">API</a>
+      <a href="https://github.com/nacal/pachinko">GitHub</a>
+    </div>
+  </nav>
+
+  <div class="container">
+    <h1>Reel Demo</h1>
+    <p style="color: var(--text-muted); margin-top: 0.5rem;">
+      Press Spin to run the lottery engine and watch the reel animation powered by <code>@pachinko/lottery</code> + <code>@pachinko/rendering</code>.
+    </p>
+
+    <div class="demo-area">
+      <div class="demo-canvas-wrapper">
+        <canvas id="reel-canvas" width="480" height="240"></canvas>
+      </div>
+
+      <div class="demo-controls">
+        <button id="btn-spin" class="btn btn-primary">Spin</button>
+        <button id="btn-skip" class="btn btn-secondary">Skip</button>
+      </div>
+
+      <div class="demo-info">
+        <h3>Result</h3>
+        <div class="stat">
+          <span class="stat-label">Outcome</span>
+          <span class="stat-value" id="stat-outcome">—</span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">Reels</span>
+          <span class="stat-value" id="stat-reels">— — —</span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">Reach</span>
+          <span class="stat-value" id="stat-reach">—</span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">Game Mode</span>
+          <span class="stat-value" id="stat-mode">normal</span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">Spins</span>
+          <span class="stat-value" id="stat-spins">0</span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">Consecutive Bonuses</span>
+          <span class="stat-value" id="stat-consecutive">0</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <p>MIT License &copy; 2026 nacal &mdash; <a href="https://github.com/nacal/pachinko">GitHub</a></p>
+  </footer>
+
+</body>
+</html>
