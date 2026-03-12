@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>pachinko — Browser-based Pachinko Engine</title>
+  <link rel="stylesheet" href="/src/style.css" />
+</head>
+<body>
+  <nav>
+    <div class="nav-inner">
+      <a href="./" class="logo">pachinko</a>
+      <a href="./" class="active">Home</a>
+      <a href="./demo.html">Demo</a>
+      <a href="./api.html">API</a>
+      <a href="https://github.com/nacal/pachinko">GitHub</a>
+    </div>
+  </nav>
+
+  <div class="hero">
+    <h1><span>pachinko</span></h1>
+    <p>A modular TypeScript engine for building browser-based pachinko experiences. Zero dependencies, fully deterministic, ready for the web.</p>
+    <div class="hero-buttons">
+      <a href="./demo.html" class="btn btn-primary">Try the Demo</a>
+      <a href="./api.html" class="btn btn-secondary">API Reference</a>
+    </div>
+  </div>
+
+  <div class="container">
+    <section>
+      <h2>Packages</h2>
+      <div class="cards">
+        <div class="card">
+          <h3>@pachinko/lottery</h3>
+          <p>Weighted random draws, multi-stage lottery pipeline, game state transitions, and simulation. The mathematical core of the pachinko engine.</p>
+        </div>
+        <div class="card">
+          <h3>@pachinko/rendering</h3>
+          <p>Canvas 2D reel animations with OffscreenCanvas + Worker support. Smooth spin/stop sequences with reach presentation effects.</p>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Features</h2>
+      <div class="cards">
+        <div class="card">
+          <h3>Zero Dependencies</h3>
+          <p>Both packages have zero external runtime dependencies. Only browser APIs and pure TypeScript.</p>
+        </div>
+        <div class="card">
+          <h3>Deterministic RNG</h3>
+          <p>Xoshiro128** PRNG with seed support. Reproducible results for testing and simulation.</p>
+        </div>
+        <div class="card">
+          <h3>OffscreenCanvas</h3>
+          <p>Rendering runs in a Web Worker via OffscreenCanvas, keeping the main thread free. Automatic fallback for older browsers.</p>
+        </div>
+        <div class="card">
+          <h3>Fully Typed</h3>
+          <p>Written in TypeScript strict mode with readonly types throughout. ESM + CJS dual exports.</p>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Quick Start</h2>
+      <pre><code>npm install @pachinko/lottery @pachinko/rendering</code></pre>
+      <pre><code>import { defineMachine, prob, createRng, draw, createState } from "@pachinko/lottery";
+
+// Define a machine spec
+const machine = defineMachine({
+  name: "Demo Machine",
+  modes: {
+    normal:  { probability: prob(1, 319.68) },
+    kakuhen: { probability: prob(1, 1.5), spins: 10 },
+    jitan:   { probability: prob(1, 319.68), spins: 100 },
+  },
+  bonusTypes: [
+    { id: "16R-kakuhen", label: "16R Kakuhen",
+      category: "oatari", rounds: 16,
+      nextMode: "kakuhen", nextModeSpins: null },
+    { id: "4R-jitan", label: "4R Jitan",
+      category: "koatari", rounds: 4,
+      nextMode: "jitan", nextModeSpins: 100 },
+  ],
+});
+
+// Draw!
+const rng = createRng({ value: 42 });
+const state = createState();
+const result = draw(machine, rng, state);
+console.log(result.outcome, result.reels);</code></pre>
+    </section>
+  </div>
+
+  <footer>
+    <p>MIT License &copy; 2026 nacal &mdash; <a href="https://github.com/nacal/pachinko">GitHub</a></p>
+  </footer>
+
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>
