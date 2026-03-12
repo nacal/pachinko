@@ -112,6 +112,7 @@ Creates a renderer with automatic OffscreenCanvas + Worker support. Falls back t
 | `spin(result: DrawResultInput)` | Start reel animation for a draw result |
 | `onComplete(callback: () => void)` | Register callback fired when animation completes |
 | `onPhaseChange(callback: (phase: ReelPhase) => void)` | Register callback fired on phase transitions |
+| `onReelStop(callback: (reel: ReelPosition, symbol: SymbolSpec) => void)` | Register callback fired when an individual reel stops |
 | `skipToResult()` | Force stop immediately (skip animation) |
 | `resize(width: number, height: number)` | Resize the renderer to match canvas size changes |
 | `destroy()` | Clean up worker, cancel animation frames |
@@ -168,6 +169,7 @@ During reach presentations, the `stopping-center` phase uses a longer slowdown w
 | `SymbolSpec` | Symbol definition: id, label, isKakuhen, optional image |
 | `DrawResultInput` | Minimal draw result needed for rendering |
 | `ReelPhase` | Animation phase enum |
+| `ReelPosition` | Reel position: `"left" \| "center" \| "right"` |
 | `ReelRenderer` | Public renderer handle |
 | `TimingConfig` | Animation timing parameters |
 | `StyleConfig` | Visual style parameters |
