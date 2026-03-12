@@ -4,6 +4,7 @@ export interface SymbolSpec {
   readonly id: string;
   readonly label: string;
   readonly isKakuhen: boolean;
+  readonly image?: ImageBitmap;
 }
 
 export interface ReelResult {

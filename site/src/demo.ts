@@ -52,21 +52,42 @@ const machine = defineMachine({
       },
     },
   },
-  symbols: ["1", "2", "3", "4", "5", "6", "7"],
+  symbols: ["1", "2", "3", "4", "5", "6", "7", "8", "9"],
   kakuhenSymbols: ["7", "3"],
 });
 
-// ─── Symbol strip for the renderer ───
+// ─── Load symbol images ───
 
-const symbolStrip: SymbolSpec[] = [
-  { id: "1", label: "1", isKakuhen: false },
-  { id: "2", label: "2", isKakuhen: false },
-  { id: "3", label: "3", isKakuhen: true },
-  { id: "4", label: "4", isKakuhen: false },
-  { id: "5", label: "5", isKakuhen: false },
-  { id: "6", label: "6", isKakuhen: false },
-  { id: "7", label: "7", isKakuhen: true },
-];
+const SYMBOL_IDS = ["1", "2", "3", "4", "5", "6", "7", "8", "9"] as const;
+const KAKUHEN_IDS = new Set(["3", "7"]);
+
+async function loadSymbolImage(id: string): Promise<ImageBitmap> {
+  const base = import.meta.env.BASE_URL ?? "/";
+  const url = `${base}symbols/${id}.svg`;
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      createImageBitmap(img).then(resolve, reject);
+    };
+    img.onerror = () => reject(new Error(`Failed to load ${url}`));
+    img.src = url;
+  });
+}
+
+async function loadSymbolStrip(): Promise<SymbolSpec[]> {
+  const entries = await Promise.all(
+    SYMBOL_IDS.map(async (id) => {
+      const image = await loadSymbolImage(id);
+      return {
+        id,
+        label: id,
+        isKakuhen: KAKUHEN_IDS.has(id),
+        image,
+      };
+    }),
+  );
+  return entries;
+}
 
 // ─── DOM elements ───
 
@@ -79,31 +100,6 @@ const statReach = document.getElementById("stat-reach")!;
 const statMode = document.getElementById("stat-mode")!;
 const statSpins = document.getElementById("stat-spins")!;
 const statConsecutive = document.getElementById("stat-consecutive")!;
-
-// ─── State ───
-
-const rng = createRng({ value: Date.now() });
-let gameState: GameState = createState();
-let totalSpins = 0;
-let spinning = false;
-
-// ─── Renderer ───
-
-const ctx = canvas.getContext("2d")!;
-const renderer = createInlineReelRenderer(ctx, {
-  symbolStrip,
-  timing: {
-    ...DEFAULT_TIMING,
-    baseSpinDuration: 800,
-    stopInterval: 400,
-    reachSlowdownDuration: 1800,
-  },
-});
-
-renderer.onComplete(() => {
-  spinning = false;
-  btnSpin.disabled = false;
-});
 
 // ─── UI update ───
 
@@ -123,38 +119,70 @@ function updateStats(result: DrawResult): void {
   statConsecutive.textContent = String(result.nextState.consecutiveBonuses);
 }
 
-// ─── Actions ───
+// ─── State ───
 
-function doSpin(): void {
-  if (spinning) return;
-  spinning = true;
-  btnSpin.disabled = true;
-  totalSpins++;
+const rng = createRng({ value: Date.now() });
+let gameState: GameState = createState();
+let totalSpins = 0;
+let spinning = false;
 
-  const result = draw(machine, gameState, rng);
-  gameState = result.nextState;
+// ─── Init ───
 
-  const renderInput: DrawResultInput = {
-    outcome: result.outcome,
-    reels: result.reels,
-    isReach: result.isReach,
-  };
+async function init(): Promise<void> {
+  const symbolStrip = await loadSymbolStrip();
 
-  renderer.spin(renderInput);
-  updateStats(result);
+  const ctx = canvas.getContext("2d")!;
+  const renderer = createInlineReelRenderer(ctx, {
+    symbolStrip,
+    timing: {
+      ...DEFAULT_TIMING,
+      baseSpinDuration: 800,
+      stopInterval: 400,
+      reachSlowdownDuration: 1800,
+    },
+  });
+
+  renderer.onComplete(() => {
+    spinning = false;
+    btnSpin.disabled = false;
+  });
+
+  function doSpin(): void {
+    if (spinning) return;
+    spinning = true;
+    btnSpin.disabled = true;
+    totalSpins++;
+
+    const result = draw(machine, gameState, rng);
+    gameState = result.nextState;
+
+    const renderInput: DrawResultInput = {
+      outcome: result.outcome,
+      reels: result.reels,
+      isReach: result.isReach,
+    };
+
+    renderer.spin(renderInput);
+    updateStats(result);
+  }
+
+  btnSpin.addEventListener("click", doSpin);
+  btnSkip.addEventListener("click", () => {
+    if (spinning) {
+      renderer.skipToResult();
+    }
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if (e.code === "Space" && !spinning) {
+      e.preventDefault();
+      doSpin();
+    }
+  });
+
+  btnSpin.disabled = false;
 }
 
-btnSpin.addEventListener("click", doSpin);
-btnSkip.addEventListener("click", () => {
-  if (spinning) {
-    renderer.skipToResult();
-  }
-});
-
-// Keyboard shortcut: Space to spin
-document.addEventListener("keydown", (e) => {
-  if (e.code === "Space" && !spinning) {
-    e.preventDefault();
-    doSpin();
-  }
-});
+// Disable spin until images loaded
+btnSpin.disabled = true;
+init();

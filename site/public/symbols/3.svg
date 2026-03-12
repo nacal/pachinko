@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120">
+  <defs>
+    <!-- Front face gradient (red/gold kakuhen) -->
+    <linearGradient id="face3" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#fff8e0"/>
+      <stop offset="12%" stop-color="#ffd700"/>
+      <stop offset="30%" stop-color="#ffaa00"/>
+      <stop offset="50%" stop-color="#ff4400"/>
+      <stop offset="70%" stop-color="#ffaa00"/>
+      <stop offset="88%" stop-color="#ffd700"/>
+      <stop offset="100%" stop-color="#cc8800"/>
+    </linearGradient>
+    <linearGradient id="bev3t" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="spec3" x1="30%" y1="0%" x2="70%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.7"/>
+      <stop offset="30%" stop-color="#ffffff" stop-opacity="0"/>
+      <stop offset="60%" stop-color="#ffffff" stop-opacity="0.15"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="glow3">
+      <feDropShadow dx="0" dy="0" stdDeviation="5" flood-color="#ff4400" flood-opacity="0.6"/>
+    </filter>
+  </defs>
+  <!-- 3D extrusion layers -->
+  <text x="68" y="97" text-anchor="middle" font-family="'Arial Black', Impact, sans-serif" font-size="88" font-weight="900" fill="#330000" stroke="#220000" stroke-width="2">3</text>
+  <text x="67" y="96" text-anchor="middle" font-family="'Arial Black', Impact, sans-serif" font-size="88" font-weight="900" fill="#551100">3</text>
+  <text x="66" y="95" text-anchor="middle" font-family="'Arial Black', Impact, sans-serif" font-size="88" font-weight="900" fill="#882200">3</text>
+  <text x="65" y="94" text-anchor="middle" font-family="'Arial Black', Impact, sans-serif" font-size="88" font-weight="900" fill="#aa3300">3</text>
+  <text x="64" y="93" text-anchor="middle" font-family="'Arial Black', Impact, sans-serif" font-size="88" font-weight="900" fill="#cc4400">3</text>
+  <text x="63" y="92" text-anchor="middle" font-family="'Arial Black', Impact, sans-serif" font-size="88" font-weight="900" fill="#dd5500">3</text>
+  <text x="62" y="91" text-anchor="middle" font-family="'Arial Black', Impact, sans-serif" font-size="88" font-weight="900" fill="#cc6600">3</text>
+  <text x="61" y="90" text-anchor="middle" font-family="'Arial Black', Impact, sans-serif" font-size="88" font-weight="900" fill="#bb5500">3</text>
+  <!-- Front face -->
+  <text x="60" y="89" text-anchor="middle" font-family="'Arial Black', Impact, sans-serif" font-size="88" font-weight="900" fill="url(#face3)" stroke="#440000" stroke-width="4" paint-order="stroke" filter="url(#glow3)">3</text>
+  <!-- Bevel highlight -->
+  <text x="59.5" y="88" text-anchor="middle" font-family="'Arial Black', Impact, sans-serif" font-size="88" font-weight="900" fill="url(#bev3t)" opacity="0.6">3</text>
+  <!-- Specular shine -->
+  <text x="60" y="89" text-anchor="middle" font-family="'Arial Black', Impact, sans-serif" font-size="88" font-weight="900" fill="url(#spec3)" opacity="0.5">3</text>
+</svg>

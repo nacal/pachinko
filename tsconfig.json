@@ -12,5 +12,6 @@
     "sourceMap": true,
     "isolatedModules": true,
     "noUncheckedIndexedAccess": true
-  }
+  },
+  "exclude": ["site"]
 }

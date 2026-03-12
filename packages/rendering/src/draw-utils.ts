@@ -13,7 +13,7 @@ export function drawBackground(
   ctx.fillRect(0, 0, width, height);
 }
 
-/** Draw a single symbol label centered within the given bounds */
+/** Draw a single symbol centered within the given bounds */
 export function drawSymbol(
   ctx: Ctx,
   symbol: SymbolSpec,
@@ -24,11 +24,25 @@ export function drawSymbol(
   style: StyleConfig,
 ): void {
   ctx.save();
-  ctx.font = style.symbolFont;
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  ctx.fillStyle = symbol.isKakuhen ? style.kakuhenColor : style.symbolColor;
-  ctx.fillText(symbol.label, x + width / 2, y + height / 2, width);
+
+  if (symbol.image) {
+    // Draw image scaled to fit, centered
+    const img = symbol.image;
+    const scale = Math.min(width / img.width, height / img.height);
+    const drawW = img.width * scale;
+    const drawH = img.height * scale;
+    const drawX = x + (width - drawW) / 2;
+    const drawY = y + (height - drawH) / 2;
+    ctx.drawImage(img, drawX, drawY, drawW, drawH);
+  } else {
+    // Fallback: text rendering
+    ctx.font = style.symbolFont;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillStyle = symbol.isKakuhen ? style.kakuhenColor : style.symbolColor;
+    ctx.fillText(symbol.label, x + width / 2, y + height / 2, width);
+  }
+
   ctx.restore();
 }
 

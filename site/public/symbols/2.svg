@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120">
+  <defs>
+    <linearGradient id="face2" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#e8ffe8"/>
+      <stop offset="12%" stop-color="#66dd66"/>
+      <stop offset="30%" stop-color="#33aa33"/>
+      <stop offset="50%" stop-color="#1a7722"/>
+      <stop offset="70%" stop-color="#33aa33"/>
+      <stop offset="88%" stop-color="#66dd66"/>
+      <stop offset="100%" stop-color="#2a7733"/>
+    </linearGradient>
+    <linearGradient id="bev2t" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="spec2" x1="30%" y1="0%" x2="70%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.7"/>
+      <stop offset="30%" stop-color="#ffffff" stop-opacity="0"/>
+      <stop offset="60%" stop-color="#ffffff" stop-opacity="0.15"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="glow2">
+      <feDropShadow dx="0" dy="0" stdDeviation="4" flood-color="#22aa22" flood-opacity="0.5"/>
+    </filter>
+  </defs>
+  <!-- 3D extrusion -->
+  <text x="68" y="97" text-anchor="middle" font-family="'Arial Black', Impact, sans-serif" font-size="88" font-weight="900" fill="#0a220a" stroke="#051105" stroke-width="2">2</text>
+  <text x="67" y="96" text-anchor="middle" font-family="'Arial Black', Impact, sans-serif" font-size="88" font-weight="900" fill="#113311">2</text>
+  <text x="66" y="95" text-anchor="middle" font-family="'Arial Black', Impact, sans-serif" font-size="88" font-weight="900" fill="#1a4a1a">2</text>
+  <text x="65" y="94" text-anchor="middle" font-family="'Arial Black', Impact, sans-serif" font-size="88" font-weight="900" fill="#226622">2</text>
+  <text x="64" y="93" text-anchor="middle" font-family="'Arial Black', Impact, sans-serif" font-size="88" font-weight="900" fill="#2a7a2a">2</text>
+  <text x="63" y="92" text-anchor="middle" font-family="'Arial Black', Impact, sans-serif" font-size="88" font-weight="900" fill="#338833">2</text>
+  <text x="62" y="91" text-anchor="middle" font-family="'Arial Black', Impact, sans-serif" font-size="88" font-weight="900" fill="#2a7a2a">2</text>
+  <text x="61" y="90" text-anchor="middle" font-family="'Arial Black', Impact, sans-serif" font-size="88" font-weight="900" fill="#226622">2</text>
+  <!-- Front face -->
+  <text x="60" y="89" text-anchor="middle" font-family="'Arial Black', Impact, sans-serif" font-size="88" font-weight="900" fill="url(#face2)" stroke="#0a1a0a" stroke-width="4" paint-order="stroke" filter="url(#glow2)">2</text>
+  <text x="59.5" y="88" text-anchor="middle" font-family="'Arial Black', Impact, sans-serif" font-size="88" font-weight="900" fill="url(#bev2t)" opacity="0.6">2</text>
+  <text x="60" y="89" text-anchor="middle" font-family="'Arial Black', Impact, sans-serif" font-size="88" font-weight="900" fill="url(#spec2)" opacity="0.5">2</text>
+</svg>
