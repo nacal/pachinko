@@ -9,8 +9,8 @@ This monorepo provides a collection of packages that model the core mechanics of
 | Package | Description | Version |
 |---------|-------------|---------|
 | [@pachinko/lottery](./packages/lottery/) | Lottery engine with weighted draws, multi-stage selection, and state-dependent probability switching | `0.1.0` |
-
-> More packages are planned — rendering, physics, sound, and machine presets.
+| [@pachinko/rendering](./packages/rendering/) | Canvas 2D reel animation renderer with OffscreenCanvas + Worker support | `0.1.0` |
+| [@pachinko/effects](./packages/effects/) | Declarative presentation effects engine — flash, shake, text overlays, and composable effect pipelines | `0.1.0` |
 
 ## Getting Started
 

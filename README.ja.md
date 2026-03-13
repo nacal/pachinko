@@ -9,8 +9,8 @@
 | パッケージ | 説明 | バージョン |
 |------------|------|------------|
 | [@pachinko/lottery](./packages/lottery/) | 重み付き抽選・多段階選択・状態依存の確率変動を備えた抽選エンジン | `0.1.0` |
-
-> 今後、描画・物理演算・サウンド・機種プリセットなどのパッケージを追加予定です。
+| [@pachinko/rendering](./packages/rendering/) | OffscreenCanvas + Worker 対応の Canvas 2D リールアニメーションレンダラー | `0.1.0` |
+| [@pachinko/effects](./packages/effects/) | 宣言的な演出エフェクトエンジン — フラッシュ・シェイク・テキストオーバーレイ・コンポーザブルなパイプライン | `0.1.0` |
 
 ## はじめに
 
