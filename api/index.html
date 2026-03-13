@@ -177,6 +177,144 @@ const result = draw(machine, rng, state);
       </div>
     </section>
 
+    <!-- ─── @pachinko/effects ─── -->
+    <section>
+      <h2>@pachinko/effects</h2>
+      <p style="color: var(--text-muted);">Declarative presentation effects engine — flash, shake, text overlays, and composable effect pipelines.</p>
+
+      <div class="api-section">
+        <h3>Engine</h3>
+
+        <h3><code>createEffectsEngine(canvas, config): EffectsEngine</code></h3>
+        <p class="api-desc">Create an effects engine that renders on a Canvas overlay. Configure with an array of effect rules.</p>
+        <pre><code>import { createEffectsEngine, flash, textOverlay, shake, sequence } from "@pachinko/effects";
+
+const engine = createEffectsEngine(overlayCanvas, {
+  rules: [
+    {
+      id: "reach-flash",
+      condition: { phase: "reach", isReach: true },
+      effects: [flash({ color: "#ff0000", opacity: 0.6, count: 3,
+                        timing: { delay: 0, duration: 800 } })],
+    },
+    {
+      id: "oatari",
+      condition: { phase: "result", outcome: "oatari" },
+      effects: [sequence(
+        flash({ color: "#ffd700", opacity: 0.8, count: 5,
+                timing: { delay: 0, duration: 1000 } }),
+        textOverlay("大当り!", { font: "bold 72px sans-serif", color: "#ffd700",
+                                timing: { delay: 0, duration: 2000 } }),
+      )],
+    },
+  ],
+});</code></pre>
+      </div>
+
+      <div class="api-section">
+        <h3>EffectsEngine Interface</h3>
+        <table class="type-table">
+          <thead><tr><th>Method</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>start(drawResult)</code></td><td>Set draw result and reset state</td></tr>
+            <tr><td><code>setPhase(phase)</code></td><td>Trigger phase-based rule evaluation</td></tr>
+            <tr><td><code>setReelStop(position, symbol)</code></td><td>Notify individual reel stop for condition matching</td></tr>
+            <tr><td><code>tick(now)</code></td><td>Render current frame</td></tr>
+            <tr><td><code>getShakeOffset()</code></td><td>Get current shake offset <code>{ x, y }</code> for applying to other canvases</td></tr>
+            <tr><td><code>onComplete(cb)</code></td><td>Register callback for timeline completion</td></tr>
+            <tr><td><code>skipToResult()</code></td><td>Skip all effects immediately</td></tr>
+            <tr><td><code>resize(w, h)</code></td><td>Update canvas dimensions</td></tr>
+            <tr><td><code>destroy()</code></td><td>Clean up</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="api-section">
+        <h3>Primitives</h3>
+
+        <h3><code>flash(options?): FlashEffect</code></h3>
+        <p class="api-desc">Screen flash with color, opacity, and repeat count.</p>
+
+        <h3><code>textOverlay(text, options?): TextOverlayEffect</code></h3>
+        <p class="api-desc">Text display with configurable font, position, fade in/out.</p>
+
+        <h3><code>backgroundChange(options?): BackgroundChangeEffect</code></h3>
+        <p class="api-desc">Smooth background color transition.</p>
+
+        <h3><code>shake(options?): ShakeEffect</code></h3>
+        <p class="api-desc">Screen shake with decaying intensity. Offset accessible via <code>getShakeOffset()</code>.</p>
+
+        <h3><code>fade(options?): FadeEffect</code></h3>
+        <p class="api-desc">Fade in or fade out with configurable color.</p>
+
+        <h3><code>imageOverlay(image, options?): ImageOverlayEffect</code></h3>
+        <p class="api-desc">Image overlay with position, size, and fade in/out.</p>
+
+        <h3><code>custom(renderFn, options?): CustomEffect</code></h3>
+        <p class="api-desc">Custom render function receiving <code>(ctx, progress, width, height)</code>.</p>
+      </div>
+
+      <div class="api-section">
+        <h3>Composers</h3>
+
+        <h3><code>sequence(...effects): SequenceComposite</code></h3>
+        <p class="api-desc">Run effects one after another.</p>
+
+        <h3><code>parallel(...effects): ParallelComposite</code></h3>
+        <p class="api-desc">Run effects simultaneously.</p>
+
+        <h3><code>stagger(delay, ...effects): StaggerComposite</code></h3>
+        <p class="api-desc">Run effects with staggered start times.</p>
+      </div>
+
+      <div class="api-section">
+        <h3>Rule Conditions</h3>
+        <table class="type-table">
+          <thead><tr><th>Property</th><th>Type</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>phase</code></td><td><code>EffectPhase | EffectPhase[]</code></td><td>Match effect phase(s)</td></tr>
+            <tr><td><code>outcome</code></td><td><code>DrawOutcome | DrawOutcome[]</code></td><td>Match draw outcome(s)</td></tr>
+            <tr><td><code>isReach</code></td><td><code>boolean</code></td><td>Match reach state</td></tr>
+            <tr><td><code>gameMode</code></td><td><code>GameMode | GameMode[]</code></td><td>Match game mode(s)</td></tr>
+            <tr><td><code>bonusTypeId</code></td><td><code>string | string[]</code></td><td>Match bonus type ID(s)</td></tr>
+            <tr><td><code>reelSymbol</code></td><td><code>{ position, symbolId }</code></td><td>Match specific reel stop</td></tr>
+            <tr><td><code>consecutiveBonuses</code></td><td><code>{ min?, max? }</code></td><td>Match consecutive bonus range</td></tr>
+            <tr><td><code>custom</code></td><td><code>(ctx) =&gt; boolean</code></td><td>Custom predicate function</td></tr>
+          </tbody>
+        </table>
+        <p class="api-desc">All fields are AND-combined. Array values are OR-combined. Omitted fields match anything.</p>
+      </div>
+
+      <div class="api-section">
+        <h3>Effect Phases</h3>
+        <pre><code>pre-spin → spin-start → pre-reach → reach → post-reach → result</code></pre>
+        <p class="api-desc">Mapped automatically from <code>@pachinko/rendering</code> ReelPhase via the adapter.</p>
+      </div>
+
+      <div class="api-section">
+        <h3>Adapter</h3>
+
+        <h3><code>connectRenderer(renderer, engine): disconnect</code></h3>
+        <p class="api-desc">Connect a <code>ReelRenderer</code> to the effects engine. Automatically maps phase changes, reel stops, and manages the animation loop. Returns a disconnect function.</p>
+      </div>
+
+      <div class="api-section">
+        <h3>Key Types</h3>
+        <table class="type-table">
+          <thead><tr><th>Type</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>EffectPhase</code></td><td><code>"pre-spin" | "spin-start" | "pre-reach" | "reach" | "post-reach" | "result"</code></td></tr>
+            <tr><td><code>EffectRule</code></td><td><code>{ id, condition, effects, priority?, exclusive? }</code></td></tr>
+            <tr><td><code>EffectCondition</code></td><td>Condition object for rule matching</td></tr>
+            <tr><td><code>EffectPrimitive</code></td><td>Union of all primitive effect types</td></tr>
+            <tr><td><code>EffectOrComposite</code></td><td>Primitive or composite (sequence/parallel/stagger)</td></tr>
+            <tr><td><code>EffectsEngine</code></td><td>Main engine interface</td></tr>
+            <tr><td><code>ShakeOffset</code></td><td><code>{ x: number, y: number }</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
     <!-- ─── @pachinko/rendering ─── -->
     <section>
       <h2>@pachinko/rendering</h2>
@@ -213,6 +351,7 @@ renderer.spin({ outcome: "oatari", reels, isReach: true });</code></pre>
             <tr><td><code>spin(result)</code></td><td>Start reel animation for a draw result</td></tr>
             <tr><td><code>onComplete(cb)</code></td><td>Register callback for animation completion</td></tr>
             <tr><td><code>onPhaseChange(cb)</code></td><td>Register callback for phase transitions</td></tr>
+            <tr><td><code>onReelStop(cb)</code></td><td>Register callback for individual reel stops (left → right → center)</td></tr>
             <tr><td><code>skipToResult()</code></td><td>Skip animation and show final result immediately</td></tr>
             <tr><td><code>resize(w, h)</code></td><td>Resize the renderer</td></tr>
             <tr><td><code>destroy()</code></td><td>Clean up worker and cancel animations</td></tr>
@@ -271,6 +410,7 @@ renderer.spin({ outcome: "oatari", reels, isReach: true });</code></pre>
             <tr><td><code>DrawResultInput</code></td><td><code>{ outcome, reels, isReach }</code> — minimal input for rendering</td></tr>
             <tr><td><code>ReelPhase</code></td><td><code>"idle" | "spinning" | "stopping-left" | "stopping-center" | "stopping-right" | "result"</code></td></tr>
             <tr><td><code>SymbolSpec</code></td><td><code>{ id, label, isKakuhen }</code></td></tr>
+            <tr><td><code>ReelPosition</code></td><td><code>"left" | "center" | "right"</code></td></tr>
             <tr><td><code>ReelRenderer</code></td><td>Main renderer interface with spin, skip, resize, destroy</td></tr>
           </tbody>
         </table>

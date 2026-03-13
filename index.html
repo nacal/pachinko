@@ -40,6 +40,10 @@
           <h3>@pachinko/rendering</h3>
           <p>Canvas 2D reel animations with OffscreenCanvas + Worker support. Smooth spin/stop sequences with reach presentation effects.</p>
         </div>
+        <div class="card">
+          <h3>@pachinko/effects</h3>
+          <p>Declarative presentation effects — flash, shake, text overlays, and composable pipelines. Rule-based triggering tied to game events.</p>
+        </div>
       </div>
     </section>
 
@@ -48,7 +52,7 @@
       <div class="cards">
         <div class="card">
           <h3>Zero Dependencies</h3>
-          <p>Both packages have zero external runtime dependencies. Only browser APIs and pure TypeScript.</p>
+          <p>All packages have zero external runtime dependencies. Only browser APIs and pure TypeScript.</p>
         </div>
         <div class="card">
           <h3>Deterministic RNG</h3>
@@ -67,7 +71,7 @@
 
     <section>
       <h2>Quick Start</h2>
-      <pre><code>npm install @pachinko/lottery @pachinko/rendering</code></pre>
+      <pre><code>npm install @pachinko/lottery @pachinko/rendering @pachinko/effects</code></pre>
       <pre><code>import { defineMachine, prob, createRng, draw, createState } from "@pachinko/lottery";
 
 // Define a machine spec
