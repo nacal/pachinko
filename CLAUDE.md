@@ -7,7 +7,10 @@
 ```
 pachinko/
 ├── packages/
-│   └── lottery/     # @pachinko/lottery — 抽選エンジン
+│   ├── lottery/     # @pachinko/lottery — 抽選エンジン
+│   ├── rendering/   # @pachinko/rendering — リールアニメーション描画
+│   └── effects/     # @pachinko/effects — 演出エフェクトエンジン
+├── site/            # ドキュメント・デモサイト (Vite)
 ├── package.json     # ルート（pnpm workspaces）
 ├── README.md        # 英語
 └── README.ja.md     # 日本語
@@ -63,10 +66,29 @@ packages/lottery/src/
 └── utils.ts       # ユーティリティ
 ```
 
+## @pachinko/effects の構造
+
+```
+packages/effects/src/
+├── index.ts           # barrel export
+├── types.ts           # 全型定義
+├── easing.ts          # イージング関数
+├── utils.ts           # lerp, color補間等
+├── primitives.ts      # エフェクトファクトリ (flash, textOverlay, shake等)
+├── composer.ts        # sequence/parallel/stagger
+├── timeline.ts        # タイムライン構築・tick
+├── rule-evaluator.ts  # ルール条件評価
+├── renderer.ts        # Canvas描画
+├── engine.ts          # メインオーケストレーター
+└── adapter.ts         # @pachinko/rendering連携
+```
+
 ## コミットメッセージ
 
 Conventional Commits 形式:
 - `feat(lottery):` — lottery パッケージの新機能
+- `feat(rendering):` — rendering パッケージの新機能
+- `feat(effects):` — effects パッケージの新機能
 - `fix(lottery):` — バグ修正
 - `docs:` — ドキュメント
 - `chore:` — 設定・メンテナンス

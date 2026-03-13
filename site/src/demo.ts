@@ -8,6 +8,17 @@ import {
 import type { GameState, DrawResult } from "@pachinko/lottery";
 import { createInlineReelRenderer, DEFAULT_TIMING } from "@pachinko/rendering";
 import type { DrawResultInput, SymbolSpec } from "@pachinko/rendering";
+import {
+  createEffectsEngine,
+  connectRenderer,
+  flash,
+  textOverlay,
+  shake,
+  fade,
+  sequence,
+  parallel,
+} from "@pachinko/effects";
+import type { EffectRule } from "@pachinko/effects";
 
 // ─── Machine definition (demo: high hit rate for fun) ───
 
@@ -92,6 +103,7 @@ async function loadSymbolStrip(): Promise<SymbolSpec[]> {
 // ─── DOM elements ───
 
 const canvas = document.getElementById("reel-canvas") as HTMLCanvasElement;
+const effectsCanvas = document.getElementById("effects-canvas") as HTMLCanvasElement;
 const btnSpin = document.getElementById("btn-spin") as HTMLButtonElement;
 const btnSkip = document.getElementById("btn-skip") as HTMLButtonElement;
 const statOutcome = document.getElementById("stat-outcome")!;
@@ -143,6 +155,68 @@ function updateStats(result: DrawResult): void {
   updateModeBanner(result.nextState);
 }
 
+// ─── Effect rules ───
+
+const effectRules: EffectRule[] = [
+  {
+    id: "reach-flash",
+    condition: { phase: "reach", isReach: true },
+    effects: [
+      parallel(
+        flash({ color: "#ff0000", opacity: 0.4, count: 3, timing: { delay: 0, duration: 600 } }),
+        shake({ intensity: 6, frequency: 25, timing: { delay: 0, duration: 500 } }),
+      ),
+    ],
+  },
+  {
+    id: "oatari-result",
+    condition: { phase: "result", outcome: "oatari" },
+    effects: [
+      sequence(
+        flash({ color: "#ffd700", opacity: 0.7, count: 5, timing: { delay: 0, duration: 800 } }),
+        parallel(
+          textOverlay("大当り!", {
+            font: "bold 64px sans-serif",
+            color: "#ffd700",
+            timing: { delay: 0, duration: 2500 },
+            fadeIn: 200,
+            fadeOut: 400,
+          }),
+          shake({ intensity: 12, frequency: 40, timing: { delay: 0, duration: 600 } }),
+        ),
+      ),
+    ],
+  },
+  {
+    id: "koatari-result",
+    condition: { phase: "result", outcome: "koatari" },
+    effects: [
+      sequence(
+        flash({ color: "#ff8800", opacity: 0.5, count: 3, timing: { delay: 0, duration: 500 } }),
+        textOverlay("小当り", {
+          font: "bold 48px sans-serif",
+          color: "#ff8800",
+          timing: { delay: 0, duration: 1500 },
+          fadeIn: 150,
+          fadeOut: 300,
+        }),
+      ),
+    ],
+  },
+  {
+    id: "kakuhen-reach-flash",
+    condition: { phase: "reach", isReach: true, gameMode: "kakuhen" },
+    effects: [
+      parallel(
+        flash({ color: "#ff4444", opacity: 0.6, count: 5, timing: { delay: 0, duration: 800 } }),
+        shake({ intensity: 10, frequency: 35, timing: { delay: 0, duration: 700 } }),
+      ),
+    ],
+    priority: 10,
+    exclusive: true,
+  },
+];
+
 // ─── State ───
 
 const rng = createRng({ value: Date.now() });
@@ -166,6 +240,10 @@ async function init(): Promise<void> {
     },
   });
 
+  // ─── Effects engine ───
+  const effectsEngine = createEffectsEngine(effectsCanvas, { rules: effectRules });
+  connectRenderer(renderer, effectsEngine);
+
   renderer.onComplete(() => {
     spinning = false;
     btnSpin.disabled = false;
@@ -186,6 +264,12 @@ async function init(): Promise<void> {
       isReach: result.isReach,
     };
 
+    effectsEngine.start({
+      ...renderInput,
+      bonusType: result.bonusType,
+      gameMode: result.previousState.mode,
+      consecutiveBonuses: result.previousState.consecutiveBonuses,
+    });
     renderer.spin(renderInput);
     updateStats(result);
   }
@@ -194,6 +278,7 @@ async function init(): Promise<void> {
   btnSkip.addEventListener("click", () => {
     if (spinning) {
       renderer.skipToResult();
+      effectsEngine.skipToResult();
     }
   });
 
