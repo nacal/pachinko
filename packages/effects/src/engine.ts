@@ -5,6 +5,7 @@ import type {
   EffectRule,
   EffectsEngine,
   EffectsEngineConfig,
+  PresentationScenario,
   ReachPresentation,
   ReelPosition,
   ShakeOffset,
@@ -30,6 +31,7 @@ export function createEffectsEngine(
   let height = canvas.height;
 
   let drawResult: DrawResultInput | null = null;
+  let currentScenario: PresentationScenario | null = null;
   let currentPhase: EffectPhase | null = null;
   const reelStops: Partial<Record<ReelPosition, SymbolSpec>> = {};
 
@@ -71,15 +73,39 @@ export function createEffectsEngine(
   function activateReachPresentation(now: number): void {
     if (!drawResult) return;
 
+    // ─── Scenario mode: use pre-determined reach presentation ───
+    if (currentScenario) {
+      const resolved = currentScenario.reachPresentation;
+      if (!resolved) {
+        for (const cb of reachPresentationEndCallbacks) cb();
+        return;
+      }
+
+      currentRequireConfirm = resolved.requireConfirm;
+      currentConfirmReadyAt = resolved.confirmReadyAt;
+      confirmReadyFired = false;
+      reachPresentationActive = true;
+      presentationComplete = false;
+      userConfirmed = false;
+
+      if (currentConfirmReadyAt <= 0) {
+        confirmReadyFired = true;
+        for (const cb of confirmReadyCallbacks) cb();
+      }
+
+      const timeline = buildTimeline(resolved.effects);
+      activePhaseState = { phase: "reach-presentation", timeline, startTime: now };
+      return;
+    }
+
+    // ─── Dynamic mode: evaluate rules ───
     const presentations = config.reachPresentations;
     if (!presentations || presentations.length === 0) {
-      // No presentations defined — resolve immediately
       for (const cb of reachPresentationEndCallbacks) cb();
       return;
     }
 
     const context = getContext();
-    // Use the same rule evaluation logic (condition, priority, exclusive)
     const asRules: EffectRule[] = presentations.map((p) => ({
       id: p.id,
       condition: p.condition,
@@ -89,12 +115,10 @@ export function createEffectsEngine(
     const matched = evaluateRules(asRules, context);
 
     if (matched.length === 0) {
-      // No matching presentation — resolve immediately
       for (const cb of reachPresentationEndCallbacks) cb();
       return;
     }
 
-    // Find the original ReachPresentation to get requireConfirm
     const matchedPresentation = presentations.find((p) => p.id === matched[0]!.id);
     currentRequireConfirm = matchedPresentation?.requireConfirm !== false;
     currentConfirmReadyAt = matchedPresentation?.confirmReadyAt ?? 0;
@@ -104,13 +128,11 @@ export function createEffectsEngine(
     presentationComplete = false;
     userConfirmed = false;
 
-    // Fire immediately if confirmReadyAt is 0
     if (currentConfirmReadyAt <= 0) {
       confirmReadyFired = true;
       for (const cb of confirmReadyCallbacks) cb();
     }
 
-    // Build timeline from matched presentation effects (use first matched only)
     const allEffects = matched[0]!.effects;
     const timeline = buildTimeline(allEffects);
     activePhaseState = { phase: "reach-presentation", timeline, startTime: now };
@@ -126,6 +148,19 @@ export function createEffectsEngine(
       return;
     }
 
+    // ─── Scenario mode: use pre-determined phase effects ───
+    if (currentScenario) {
+      const entry = currentScenario.phaseEffects.find((e) => e.phase === phase);
+      if (!entry || entry.effects.length === 0) {
+        activePhaseState = null;
+        return;
+      }
+      const timeline = buildTimeline(entry.effects);
+      activePhaseState = { phase, timeline, startTime: now };
+      return;
+    }
+
+    // ─── Dynamic mode: evaluate rules ───
     const context = getContext();
     const matchedRules = evaluateRules(config.rules, context);
 
@@ -139,8 +174,9 @@ export function createEffectsEngine(
     activePhaseState = { phase, timeline, startTime: now };
   }
 
-  function start(result: DrawResultInput): void {
+  function start(result: DrawResultInput, scenario?: PresentationScenario): void {
     drawResult = result;
+    currentScenario = scenario ?? null;
     reelStops.left = undefined;
     reelStops.center = undefined;
     reelStops.right = undefined;

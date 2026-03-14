@@ -221,7 +221,7 @@ export interface EffectsEngineConfig {
 }
 
 export interface EffectsEngine {
-  start(drawResult: DrawResultInput): void;
+  start(drawResult: DrawResultInput, scenario?: PresentationScenario): void;
   setPhase(phase: EffectPhase): void;
   setReelStop(position: ReelPosition, symbol: SymbolSpec): void;
   tick(now: number): void;
@@ -238,6 +238,97 @@ export interface EffectsEngine {
   skipToResult(): void;
   resize(width: number, height: number): void;
   destroy(): void;
+}
+
+// ─── Scenario RNG (lottery-independent minimal interface) ───
+
+export interface ScenarioRng {
+  next(): number;
+}
+
+// ─── Presentation Scenario (pre-determined at reserve time) ───
+
+export interface PhaseEffectEntry {
+  readonly phase: EffectPhase;
+  readonly effects: readonly EffectOrComposite[];
+}
+
+export interface ResolvedReachPresentation {
+  readonly presentationId: string;
+  readonly effects: readonly EffectOrComposite[];
+  readonly requireConfirm: boolean;
+  readonly confirmReadyAt: number;
+}
+
+export interface PresentationScenario {
+  readonly color: string;
+  readonly phaseEffects: readonly PhaseEffectEntry[];
+  readonly reachPresentation: ResolvedReachPresentation | null;
+}
+
+// ─── Scenario Rules (distribution tables) ───
+
+export interface ScenarioCondition {
+  readonly outcome?: DrawOutcome | readonly DrawOutcome[];
+  readonly isReach?: boolean;
+  readonly gameMode?: GameMode | readonly GameMode[];
+  readonly bonusTypeId?: string | readonly string[];
+  readonly consecutiveBonuses?: { readonly min?: number; readonly max?: number };
+  readonly custom?: (drawResult: DrawResultInput) => boolean;
+}
+
+export interface ColorScenarioEntry {
+  readonly color: string;
+  readonly weight: number;
+  readonly reliability?: number;
+}
+
+export interface ReachScenarioEntry {
+  readonly presentationId: string;
+  readonly weight: number;
+  readonly effects: readonly EffectOrComposite[];
+  readonly requireConfirm?: boolean;
+  readonly confirmReadyAt?: number;
+}
+
+export interface PhaseEffectScenarioEntry {
+  readonly weight: number;
+  readonly effects: readonly EffectOrComposite[];
+}
+
+export interface PhaseScenarioTable {
+  readonly phase: EffectPhase;
+  readonly entries: readonly PhaseEffectScenarioEntry[];
+}
+
+export interface ScenarioRule {
+  readonly id: string;
+  readonly condition: ScenarioCondition;
+  readonly priority?: number;
+  readonly color?: {
+    readonly entries: readonly ColorScenarioEntry[];
+    readonly defaultColor?: string;
+  };
+  readonly reachPresentations?: readonly ReachScenarioEntry[];
+  readonly phaseEffects?: readonly PhaseScenarioTable[];
+}
+
+export interface ScenarioConfig {
+  readonly rules: readonly ScenarioRule[];
+  readonly defaultColor?: string;
+}
+
+// ─── Color Expectation (期待度) ───
+
+export interface ColorExpectationRates {
+  readonly oatariRate: number;
+  readonly hazureReachRate: number;
+}
+
+export interface ColorExpectation {
+  readonly color: string;
+  readonly expectation: number;
+  readonly frequency: number;
 }
 
 // ─── ReelRenderer (subset for adapter) ───
