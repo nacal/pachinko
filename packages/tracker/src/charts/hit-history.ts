@@ -1,5 +1,5 @@
 import type { HitEntry, HitHistoryOptions } from "../types";
-import { resolveChartStyle, drawBackground, getBonusColor, drawAxisLabel, drawNoData, drawAxes, drawBar } from "../chart-utils";
+import { resolveChartStyle, drawBackground, getBonusColor, drawAxisLabel, drawAxes, drawBar } from "../chart-utils";
 
 const PADDING = { top: 20, right: 20, bottom: 40, left: 50 };
 const BAR_GAP_RATIO = 0.2;
@@ -17,21 +17,39 @@ export function renderHitHistory(
 
   drawBackground(ctx, width, height, style);
 
+  const chartLeft = PADDING.left;
+  const chartTop = PADDING.top;
+  const chartWidth = width - PADDING.left - PADDING.right;
+  const chartHeight = height - PADDING.top - PADDING.bottom;
+
   if (hits.length === 0) {
-    drawNoData(ctx, width, height, style);
+    // Draw empty chart with axes only
+    const yMax = options?.yMax ?? 500;
+    const emptyBarWidth = chartWidth / maxBars;
+    drawAxes(ctx, chartLeft, chartTop, chartWidth, chartHeight, style);
+    for (let i = 0; i < maxBars; i++) {
+      drawAxisLabel(
+        ctx,
+        String(i + 1),
+        chartLeft + emptyBarWidth * i + emptyBarWidth / 2,
+        chartTop + chartHeight + 6,
+        style,
+      );
+    }
+    const ySteps = 4;
+    for (let i = 0; i <= ySteps; i++) {
+      const val = Math.round((yMax / ySteps) * i);
+      const y = chartTop + chartHeight - (val / yMax) * chartHeight;
+      drawAxisLabel(ctx, String(val), chartLeft - 6, y, style, "right", "middle");
+    }
     return;
   }
 
   // Take most recent N hits
   const visibleHits = hits.length > maxBars ? hits.slice(-maxBars) : hits;
 
-  const chartLeft = PADDING.left;
-  const chartTop = PADDING.top;
-  const chartWidth = width - PADDING.left - PADDING.right;
-  const chartHeight = height - PADDING.top - PADDING.bottom;
-
   // Find max rotation for scaling
-  let maxRotation = 0;
+  let maxRotation = options?.yMax ?? 0;
   for (const hit of visibleHits) {
     if (hit.rotationsSinceLastHit > maxRotation) {
       maxRotation = hit.rotationsSinceLastHit;
@@ -40,7 +58,8 @@ export function renderHitHistory(
   maxRotation = Math.max(maxRotation, 1);
   const yMax = maxRotation * 1.15; // Headroom for labels
 
-  const totalBarWidth = chartWidth / visibleHits.length;
+  const barSlots = Math.max(visibleHits.length, maxBars);
+  const totalBarWidth = chartWidth / barSlots;
   const gap = totalBarWidth * BAR_GAP_RATIO;
   const barWidth = totalBarWidth - gap;
 

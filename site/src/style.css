@@ -311,6 +311,12 @@ section h2 {
   border-bottom: 1px solid var(--border);
 }
 
+#slump-graph {
+  display: block;
+  width: 100%;
+  border-bottom: 1px solid var(--border);
+}
+
 .demo-canvas-stack {
   position: relative;
 }

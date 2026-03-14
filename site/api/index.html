@@ -464,13 +464,23 @@ const stats = tracker.stats();</code></pre>
 
         <h3><code>renderSlumpGraph(ctx, width, height, data, options?)</code></h3>
         <p class="api-desc">Line chart showing net ball count over cumulative spins. Positive area filled green, negative filled red. Zero line highlighted.</p>
+        <table class="type-table">
+          <thead><tr><th>Option</th><th>Default</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>maxSpins</code></td><td>—</td><td>Fixed x-axis max (axis spans 0..maxSpins)</td></tr>
+            <tr><td><code>yRange</code></td><td>—</td><td>Fixed y-axis range (axis spans at least -yRange..+yRange)</td></tr>
+            <tr><td><code>showGrid</code></td><td><code>true</code></td><td>Show grid lines</td></tr>
+            <tr><td><code>showZeroLine</code></td><td><code>true</code></td><td>Show zero line</td></tr>
+          </tbody>
+        </table>
 
         <h3><code>renderHitHistory(ctx, width, height, hits, options?)</code></h3>
         <p class="api-desc">Bar chart showing rotation count between hits. Bars color-coded by bonus type. Labels show rotation count above each bar.</p>
         <table class="type-table">
           <thead><tr><th>Option</th><th>Default</th><th>Description</th></tr></thead>
           <tbody>
-            <tr><td><code>maxBars</code></td><td><code>20</code></td><td>Max bars to display (most recent N)</td></tr>
+            <tr><td><code>maxBars</code></td><td><code>20</code></td><td>Max bars to display (most recent N); also sets fixed x-axis width</td></tr>
+            <tr><td><code>yMax</code></td><td>—</td><td>Fixed y-axis max (axis spans at least 0..yMax)</td></tr>
             <tr><td><code>showLabels</code></td><td><code>true</code></td><td>Show rotation count labels above bars</td></tr>
           </tbody>
         </table>

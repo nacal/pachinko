@@ -8,7 +8,6 @@ export {
   drawZeroLine,
   drawAxes,
   drawAxisLabel,
-  drawNoData,
   drawSegmentDigit,
   drawSegmentNumber,
   drawBar,

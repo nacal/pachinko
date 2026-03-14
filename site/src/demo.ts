@@ -203,11 +203,14 @@ function updateCharts(): void {
   const sgCtx = slumpGraphCanvas.getContext("2d")!;
   renderSlumpGraph(sgCtx, slumpGraphCanvas.width, slumpGraphCanvas.height, snap.ballHistory, {
     style: { bonusColors: chartBonusColors },
+    maxSpins: 1000,
+    yRange: 5000,
   });
 
   const hhCtx = hitHistoryCanvas.getContext("2d")!;
   renderHitHistory(hhCtx, hitHistoryCanvas.width, hitHistoryCanvas.height, snap.hitHistory, {
     maxBars: 15,
+    yMax: 500,
     style: { bonusColors: chartBonusColors },
   });
 }

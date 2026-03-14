@@ -1,5 +1,5 @@
 import type { BallDataPoint, SlumpGraphOptions } from "../types";
-import { resolveChartStyle, drawBackground, drawGridLines, drawZeroLine, drawAxisLabel, drawNoData, drawAxes } from "../chart-utils";
+import { resolveChartStyle, drawBackground, drawGridLines, drawZeroLine, drawAxisLabel, drawAxes } from "../chart-utils";
 
 const PADDING = { top: 20, right: 20, bottom: 40, left: 60 };
 
@@ -16,8 +16,7 @@ export function renderSlumpGraph(
 
   drawBackground(ctx, width, height, style);
 
-  if (data.length < 2) {
-    drawNoData(ctx, width, height, style);
+  if (data.length < 2 && !options?.maxSpins) {
     return;
   }
 
@@ -27,8 +26,11 @@ export function renderSlumpGraph(
   const chartHeight = height - PADDING.top - PADDING.bottom;
 
   // Compute ranges
-  const maxSpin = data[data.length - 1]!.spinNumber;
-  const minSpin = data[0]!.spinNumber;
+  const minSpin = 0;
+  const lastSpin = data.length > 0 ? data[data.length - 1]!.spinNumber : 0;
+  const maxSpin = options?.maxSpins
+    ? Math.max(options.maxSpins, lastSpin)
+    : Math.max(lastSpin, 1);
   let minBalls = 0;
   let maxBalls = 0;
   for (const point of data) {
@@ -37,6 +39,10 @@ export function renderSlumpGraph(
   }
 
   // Add padding to Y range
+  if (options?.yRange) {
+    minBalls = Math.min(minBalls, -options.yRange);
+    maxBalls = Math.max(maxBalls, options.yRange);
+  }
   const yRange = Math.max(maxBalls - minBalls, 100);
   const yPad = yRange * 0.1;
   const yMin = minBalls - yPad;
@@ -67,39 +73,41 @@ export function renderSlumpGraph(
   ctx.rect(chartLeft, chartTop, chartWidth, chartHeight);
   ctx.clip();
 
-  // Positive fill
-  ctx.beginPath();
-  ctx.moveTo(toX(data[0]!.spinNumber), toY(0));
-  for (const point of data) {
-    const y = Math.min(toY(point.netBalls), toY(0));
-    ctx.lineTo(toX(point.spinNumber), y);
-  }
-  ctx.lineTo(toX(data[data.length - 1]!.spinNumber), toY(0));
-  ctx.closePath();
-  ctx.fillStyle = style.positiveColor + "33";
-  ctx.fill();
+  if (data.length >= 2) {
+    // Positive fill
+    ctx.beginPath();
+    ctx.moveTo(toX(data[0]!.spinNumber), toY(0));
+    for (const point of data) {
+      const y = Math.min(toY(point.netBalls), toY(0));
+      ctx.lineTo(toX(point.spinNumber), y);
+    }
+    ctx.lineTo(toX(data[data.length - 1]!.spinNumber), toY(0));
+    ctx.closePath();
+    ctx.fillStyle = style.positiveColor + "33";
+    ctx.fill();
 
-  // Negative fill
-  ctx.beginPath();
-  ctx.moveTo(toX(data[0]!.spinNumber), toY(0));
-  for (const point of data) {
-    const y = Math.max(toY(point.netBalls), toY(0));
-    ctx.lineTo(toX(point.spinNumber), y);
-  }
-  ctx.lineTo(toX(data[data.length - 1]!.spinNumber), toY(0));
-  ctx.closePath();
-  ctx.fillStyle = style.negativeColor + "33";
-  ctx.fill();
+    // Negative fill
+    ctx.beginPath();
+    ctx.moveTo(toX(data[0]!.spinNumber), toY(0));
+    for (const point of data) {
+      const y = Math.max(toY(point.netBalls), toY(0));
+      ctx.lineTo(toX(point.spinNumber), y);
+    }
+    ctx.lineTo(toX(data[data.length - 1]!.spinNumber), toY(0));
+    ctx.closePath();
+    ctx.fillStyle = style.negativeColor + "33";
+    ctx.fill();
 
-  // Draw main line
-  ctx.beginPath();
-  ctx.moveTo(toX(data[0]!.spinNumber), toY(data[0]!.netBalls));
-  for (let i = 1; i < data.length; i++) {
-    ctx.lineTo(toX(data[i]!.spinNumber), toY(data[i]!.netBalls));
+    // Draw main line
+    ctx.beginPath();
+    ctx.moveTo(toX(data[0]!.spinNumber), toY(data[0]!.netBalls));
+    for (let i = 1; i < data.length; i++) {
+      ctx.lineTo(toX(data[i]!.spinNumber), toY(data[i]!.netBalls));
+    }
+    ctx.strokeStyle = style.lineColor;
+    ctx.lineWidth = 2;
+    ctx.stroke();
   }
-  ctx.strokeStyle = style.lineColor;
-  ctx.lineWidth = 2;
-  ctx.stroke();
 
   ctx.restore();
 

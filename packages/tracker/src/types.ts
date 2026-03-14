@@ -109,12 +109,18 @@ export interface SlumpGraphOptions {
   readonly style?: Partial<ChartStyle>;
   readonly showGrid?: boolean;
   readonly showZeroLine?: boolean;
+  /** Fixed x-axis max. When set, the axis always spans 0..maxSpins. */
+  readonly maxSpins?: number;
+  /** Fixed y-axis range. When set, the axis always spans at least -yRange..+yRange. */
+  readonly yRange?: number;
 }
 
 export interface HitHistoryOptions {
   readonly style?: Partial<ChartStyle>;
   readonly maxBars?: number;
   readonly showLabels?: boolean;
+  /** Fixed y-axis max. When set, the axis always spans at least 0..yMax. */
+  readonly yMax?: number;
 }
 
 export interface StatsPanelOptions {

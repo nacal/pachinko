@@ -44,16 +44,16 @@ describe("renderSlumpGraph", () => {
     expect(ctx.fill).toHaveBeenCalled(); // area fills
   });
 
-  it("shows no data message when empty", () => {
+  it("renders empty graph without no-data message when empty", () => {
     const ctx = createMockCtx();
     renderSlumpGraph(ctx, 480, 240, []);
-    expect(ctx.fillText).toHaveBeenCalledWith("No data", 240, 120);
+    expect(ctx.fillText).not.toHaveBeenCalledWith("No data", 240, 120);
   });
 
-  it("shows no data for single point", () => {
+  it("renders empty graph without no-data message for single point", () => {
     const ctx = createMockCtx();
     renderSlumpGraph(ctx, 480, 240, [{ spinNumber: 0, netBalls: 0 }]);
-    expect(ctx.fillText).toHaveBeenCalledWith("No data", 240, 120);
+    expect(ctx.fillText).not.toHaveBeenCalledWith("No data", 240, 120);
   });
 
   it("respects style options", () => {

@@ -42,10 +42,10 @@ describe("renderHitHistory", () => {
     expect(ctx.fillText).toHaveBeenCalled();
   });
 
-  it("shows no data message when empty", () => {
+  it("renders empty chart without no-data message when empty", () => {
     const ctx = createMockCtx();
     renderHitHistory(ctx, 480, 240, []);
-    expect(ctx.fillText).toHaveBeenCalledWith("No data", 240, 120);
+    expect(ctx.fillText).not.toHaveBeenCalledWith("No data", 240, 120);
   });
 
   it("limits visible bars with maxBars", () => {
