@@ -4,9 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>API Reference — pachinko</title>
-  <script type="module" crossorigin src="/pachinko/assets/style-CFfJ8o3q.js"></script>
-  <script type="module" crossorigin src="/pachinko/assets/main-Do9XEppf.js"></script>
-  <link rel="stylesheet" crossorigin href="/pachinko/assets/style-CUWhpBgr.css">
+  <script type="module" crossorigin src="/pachinko/assets/style-CBetOcz2.js"></script>
+  <script type="module" crossorigin src="/pachinko/assets/main-BIuKobF6.js"></script>
+  <link rel="stylesheet" crossorigin href="/pachinko/assets/style-oPvOw1mU.css">
 </head>
 <body>
   <nav>
@@ -33,7 +33,7 @@
 
         <h3><code>createRng(seed: RngSeed): Rng</code></h3>
         <p class="api-desc">Create a seeded Xoshiro128** PRNG. Deterministic output for the same seed.</p>
-        <pre><code>import { createRng } from "@pachinko/lottery";
+        <pre><code class="language-typescript">import { createRng } from "@pachinko/lottery";
 const rng = createRng({ value: 42 });
 rng.next();       // float in [0, 1)
 rng.nextInt(100); // integer in [0, 100)</code></pre>
@@ -57,7 +57,7 @@ rng.nextInt(100); // integer in [0, 100)</code></pre>
 
         <h3><code>defineMachine(config: MachineConfig): MachineSpec</code></h3>
         <p class="api-desc">Create a validated machine spec from a declarative config.</p>
-        <pre><code>import { defineMachine, prob } from "@pachinko/lottery";
+        <pre><code class="language-typescript">import { defineMachine, prob } from "@pachinko/lottery";
 
 const machine = defineMachine({
   id: "my-machine",
@@ -110,7 +110,7 @@ const machine = defineMachine({
 
         <h3><code>draw(machine, rng, state): DrawResult</code></h3>
         <p class="api-desc">Run the full lottery pipeline: outcome → bonus type → reels → next state.</p>
-        <pre><code>import { draw, createState, createRng, defineMachine, prob } from "@pachinko/lottery";
+        <pre><code class="language-typescript">import { draw, createState, createRng, defineMachine, prob } from "@pachinko/lottery";
 
 const rng = createRng({ value: 42 });
 const state = createState();
@@ -188,7 +188,7 @@ const result = draw(machine, rng, state);
 
         <h3><code>createEffectsEngine(canvas, config): EffectsEngine</code></h3>
         <p class="api-desc">Create an effects engine that renders on a Canvas overlay. Configure with an array of effect rules.</p>
-        <pre><code>import { createEffectsEngine, flash, textOverlay, shake, sequence } from "@pachinko/effects";
+        <pre><code class="language-typescript">import { createEffectsEngine, flash, textOverlay, shake, sequence } from "@pachinko/effects";
 
 const engine = createEffectsEngine(overlayCanvas, {
   rules: [
@@ -288,7 +288,7 @@ const engine = createEffectsEngine(overlayCanvas, {
 
       <div class="api-section">
         <h3>Effect Phases</h3>
-        <pre><code>pre-spin → spin-start → pre-reach → reach → reach-presentation → post-reach → result</code></pre>
+        <pre><code class="language-typescript">pre-spin → spin-start → pre-reach → reach → reach-presentation → post-reach → result</code></pre>
         <p class="api-desc">Mapped automatically from <code>@pachinko/rendering</code> ReelPhase via the adapter.</p>
       </div>
 
@@ -307,7 +307,7 @@ const engine = createEffectsEngine(overlayCanvas, {
 
         <h3><code>createBackgroundEngine(canvas, config): BackgroundEngine</code></h3>
         <p class="api-desc">Create a background engine that renders behind the reel canvas. Supports mode-based and phase-based background switching with smooth transitions.</p>
-        <pre><code>import { createBackgroundEngine, connectBackgroundEngine, gradientBg, particleBg } from "@pachinko/effects";
+        <pre><code class="language-typescript">import { createBackgroundEngine, connectBackgroundEngine, gradientBg, particleBg } from "@pachinko/effects";
 
 const bgEngine = createBackgroundEngine(bgCanvas, {
   modeBackgrounds: {
@@ -409,7 +409,7 @@ connectBackgroundEngine(renderer, bgEngine);</code></pre>
 
         <h3><code>createSessionTracker(config): SessionTracker</code></h3>
         <p class="api-desc">Create a session tracker that records spins, computes statistics, and provides immutable snapshots.</p>
-        <pre><code>import { createSessionTracker, renderStatsPanel, renderSlumpGraph, renderHitHistory } from "@pachinko/tracker";
+        <pre><code class="language-typescript">import { createSessionTracker, renderStatsPanel, renderSlumpGraph, renderHitHistory } from "@pachinko/tracker";
 
 const tracker = createSessionTracker({
   ballsPerSpin: 4,
@@ -548,7 +548,7 @@ const stats = tracker.stats();</code></pre>
 
         <h3><code>drawSegmentNumber(ctx, num, x, y, digitW, digitH, color, totalDigits)</code></h3>
         <p class="api-desc">Draw a right-aligned multi-digit number with dim "8" background segments for all digit positions.</p>
-        <pre><code>import { drawSegmentDigit, drawSegmentNumber } from "@pachinko/ui";
+        <pre><code class="language-typescript">import { drawSegmentDigit, drawSegmentNumber } from "@pachinko/ui";
 
 drawSegmentDigit(ctx, "7", 10, 10, 20, 30, "#00ff66");
 drawSegmentNumber(ctx, 42, 200, 10, 16, 24, "#ff4444", 4);</code></pre>
@@ -612,7 +612,7 @@ drawSegmentNumber(ctx, 42, 200, 10, 16, 24, "#ff4444", 4);</code></pre>
 
         <h3><code>createReelRenderer(canvas, config): ReelRenderer</code></h3>
         <p class="api-desc">Create a renderer with automatic OffscreenCanvas + Worker detection. Falls back to main-thread rendering if unavailable.</p>
-        <pre><code>import { createReelRenderer } from "@pachinko/rendering";
+        <pre><code class="language-typescript">import { createReelRenderer } from "@pachinko/rendering";
 
 const renderer = createReelRenderer(canvas, {
   symbolStrip: [
@@ -648,7 +648,7 @@ renderer.spin({ outcome: "oatari", reels, isReach: true });</code></pre>
 
       <div class="api-section">
         <h3>Animation Phases</h3>
-        <pre><code>idle → spinning → stopping-left → stopping-center → stopping-right → result</code></pre>
+        <pre><code class="language-typescript">idle → spinning → stopping-left → stopping-center → stopping-right → result</code></pre>
         <p class="api-desc">When <code>isReach === true</code>, the <code>stopping-center</code> phase uses a dramatic slowdown effect.</p>
       </div>
 

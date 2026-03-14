@@ -1,1 +1,0 @@
-const s=window.location.pathname;document.querySelectorAll("nav a").forEach(a=>{const t=a;if(t.classList.contains("logo"))return;t.classList.remove("active");const e=t.getAttribute("href");e&&s.endsWith(e.replace("./",""))&&t.classList.add("active"),e==="./"&&(s.endsWith("/")||s.endsWith("/index.html"))&&t.classList.add("active")});
