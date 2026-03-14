@@ -519,6 +519,86 @@ const stats = tracker.stats();</code></pre>
       </div>
     </section>
 
+    <!-- ─── @pachinko/ui ─── -->
+    <section>
+      <h2>@pachinko/ui</h2>
+      <p style="color: var(--text-muted);">Canvas-based UI component library — shared drawing primitives for charts, indicators, and data displays.</p>
+
+      <div class="api-section">
+        <h3>Style</h3>
+
+        <h3><code>resolveChartStyle(partial?): ChartStyle</code></h3>
+        <p class="api-desc">Merge a partial style with defaults. Returns <code>DEFAULT_CHART_STYLE</code> when called with no arguments.</p>
+
+        <h3><code>getBonusColor(style, bonusId): string</code></h3>
+        <p class="api-desc">Look up a bonus type color from <code>style.bonusColors</code>, falling back to <code>style.defaultBonusColor</code>.</p>
+
+        <h3><code>DEFAULT_CHART_STYLE</code></h3>
+        <p class="api-desc">Default dark-theme chart style constant.</p>
+      </div>
+
+      <div class="api-section">
+        <h3>Segment Display</h3>
+
+        <h3><code>drawSegmentDigit(ctx, digit, x, y, w, h, color)</code></h3>
+        <p class="api-desc">Draw a single 7-segment digit (0-9) at the given position and size.</p>
+
+        <h3><code>drawSegmentNumber(ctx, num, x, y, digitW, digitH, color, totalDigits)</code></h3>
+        <p class="api-desc">Draw a right-aligned multi-digit number with dim "8" background segments for all digit positions.</p>
+        <pre><code>import { drawSegmentDigit, drawSegmentNumber } from "@pachinko/ui";
+
+drawSegmentDigit(ctx, "7", 10, 10, 20, 30, "#00ff66");
+drawSegmentNumber(ctx, 42, 200, 10, 16, 24, "#ff4444", 4);</code></pre>
+      </div>
+
+      <div class="api-section">
+        <h3>Chart Primitives</h3>
+
+        <h3><code>drawBackground(ctx, width, height, style)</code></h3>
+        <p class="api-desc">Fill the canvas with <code>style.backgroundColor</code>.</p>
+
+        <h3><code>drawAxes(ctx, left, top, width, height, style)</code></h3>
+        <p class="api-desc">Draw L-shaped chart axes (vertical + horizontal).</p>
+
+        <h3><code>drawGridLines(ctx, left, top, width, height, xCount, yCount, style)</code></h3>
+        <p class="api-desc">Draw grid lines within the chart area.</p>
+
+        <h3><code>drawZeroLine(ctx, left, y, width, style)</code></h3>
+        <p class="api-desc">Draw a dashed horizontal zero line.</p>
+
+        <h3><code>drawAxisLabel(ctx, text, x, y, style, align?, baseline?)</code></h3>
+        <p class="api-desc">Draw a text label at the given position using <code>style.labelFont</code>.</p>
+
+        <h3><code>drawNoData(ctx, width, height, style)</code></h3>
+        <p class="api-desc">Draw a centered "No data" message.</p>
+      </div>
+
+      <div class="api-section">
+        <h3>Indicators</h3>
+
+        <h3><code>drawCircle(ctx, x, y, radius, color, time?, opacity?)</code></h3>
+        <p class="api-desc">Draw a filled circle. <code>color</code> can be a string or a <code>ColorRenderer</code> function for custom effects (e.g., rainbow gradient).</p>
+
+        <h3><code>drawEmptySlot(ctx, x, y, radius, alpha?)</code></h3>
+        <p class="api-desc">Draw a dim, small circle indicating an empty slot.</p>
+
+        <h3><code>drawBar(ctx, x, y, width, height, color, borderOpacity?)</code></h3>
+        <p class="api-desc">Draw a filled rectangle with optional same-color border.</p>
+      </div>
+
+      <div class="api-section">
+        <h3>Key Types</h3>
+        <table class="type-table">
+          <thead><tr><th>Type</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>ChartStyle</code></td><td>Full chart style configuration (colors, fonts, bonus colors)</td></tr>
+            <tr><td><code>Padding</code></td><td><code>{ top, right, bottom, left }</code> layout padding</td></tr>
+            <tr><td><code>ColorRenderer</code></td><td><code>(ctx, x, y, radius, time) =&gt; void</code> — custom circle renderer</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
     <!-- ─── @pachinko/rendering ─── -->
     <section>
       <h2>@pachinko/rendering</h2>

@@ -11,7 +11,8 @@ pachinko/
 │   ├── rendering/   # @pachinko/rendering — リールアニメーション描画
 │   ├── effects/     # @pachinko/effects — 演出エフェクトエンジン
 │   ├── tracker/     # @pachinko/tracker — データトラッキング＆可視化
-│   └── reserve/     # @pachinko/reserve — 保留システム
+│   ├── reserve/     # @pachinko/reserve — 保留システム
+│   └── ui/          # @pachinko/ui — Canvas UI コンポーネントライブラリ
 ├── site/            # ドキュメント・デモサイト (Vite)
 ├── package.json     # ルート（pnpm workspaces）
 ├── README.md        # 英語
@@ -98,7 +99,7 @@ packages/tracker/src/
 ├── tracker.ts         # セッショントラッカー (createSessionTracker)
 ├── stats.ts           # 純粋な統計計算関数
 ├── utils.ts           # formatProbability, clamp等
-├── chart-utils.ts     # Canvas描画ヘルパー (軸, グリッド, ラベル)
+├── chart-utils.ts     # @pachinko/ui からの再エクスポート
 └── charts/
     ├── slump-graph.ts # スランプグラフ（折れ線）
     ├── hit-history.ts # 大当たり履歴（棒グラフ）
@@ -117,6 +118,22 @@ packages/reserve/src/
 └── orchestrator.ts    # 統合オーケストレーター (createReserveOrchestrator)
 ```
 
+## @pachinko/ui の構造
+
+```
+packages/ui/src/
+├── index.ts           # barrel export
+├── types.ts           # 全型定義 (ChartStyle, Padding, ColorRenderer)
+├── style.ts           # デフォルトスタイル・スタイル解決
+├── background.ts      # 背景塗りつぶし
+├── grid.ts            # グリッド線・ゼロライン
+├── axes.ts            # L字軸・軸ラベル
+├── text.ts            # "No data" メッセージ
+├── segment-display.ts # 7セグメント数字描画
+├── circle.ts          # 円形インジケーター・空スロット
+└── bar.ts             # 棒グラフ描画
+```
+
 ## コミットメッセージ
 
 Conventional Commits 形式:
@@ -125,6 +142,7 @@ Conventional Commits 形式:
 - `feat(effects):` — effects パッケージの新機能
 - `feat(tracker):` — tracker パッケージの新機能
 - `feat(reserve):` — reserve パッケージの新機能
+- `feat(ui):` — ui パッケージの新機能
 - `fix(lottery):` — バグ修正
 - `docs:` — ドキュメント
 - `chore:` — 設定・メンテナンス
