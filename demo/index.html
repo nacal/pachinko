@@ -4,10 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Demo — pachinko</title>
-  <script type="module" crossorigin src="/pachinko/assets/demo-DSnepHhE.js"></script>
-  <link rel="modulepreload" crossorigin href="/pachinko/assets/main-DU8GJ1Ie.js">
+  <script type="module" crossorigin src="/pachinko/assets/demo-DwfeMfB9.js"></script>
+  <link rel="modulepreload" crossorigin href="/pachinko/assets/main-CEUjYQ8g.js">
   <link rel="modulepreload" crossorigin href="/pachinko/assets/index-cPHEEMQv.js">
-  <link rel="stylesheet" crossorigin href="/pachinko/assets/main-oPvOw1mU.css">
+  <link rel="stylesheet" crossorigin href="/pachinko/assets/main-CTFn-fWm.css">
 </head>
 <body>
   <nav>
@@ -42,6 +42,28 @@
         <button id="btn-spin" class="btn btn-primary">Spin</button>
         <button id="btn-confirm" class="btn btn-primary" style="display:none;">Confirm</button>
         <button id="btn-skip" class="btn btn-secondary">Skip</button>
+        <label class="demo-auto-toggle">
+          <input type="checkbox" id="chk-auto" />
+          Auto
+        </label>
+        <select id="sel-speed" class="demo-select">
+          <option value="500">Normal</option>
+          <option value="200">Fast</option>
+          <option value="0">Instant</option>
+        </select>
+      </div>
+
+      <div class="demo-trigger-panel">
+        <h3>Trigger</h3>
+        <div class="demo-trigger-buttons">
+          <button class="btn btn-trigger" data-trigger="oatari">大当たり</button>
+          <button class="btn btn-trigger" data-trigger="reach-hazure">リーチハズレ</button>
+          <button class="btn btn-trigger" data-trigger="hazure">通常ハズレ</button>
+          <button class="btn btn-trigger" data-trigger="pseudo1">擬似連×2</button>
+          <button class="btn btn-trigger" data-trigger="pseudo2">擬似連×3</button>
+          <button class="btn btn-trigger" data-trigger="pseudo3">擬似連×4</button>
+          <button class="btn btn-trigger" data-trigger="kakuhen">確変突入</button>
+        </div>
       </div>
 
       <div class="demo-mode-banner" id="mode-banner">
