@@ -8,11 +8,12 @@ document.querySelectorAll("nav a").forEach((link) => {
   const el = link as HTMLAnchorElement;
   if (el.classList.contains("logo")) return;
   el.classList.remove("active");
-  const href = el.getAttribute("href");
-  if (href && currentPath.endsWith(href.replace("./", ""))) {
-    el.classList.add("active");
-  }
-  if (href === "./" && (currentPath.endsWith("/") || currentPath.endsWith("/index.html"))) {
+
+  // Resolve the href to an absolute path via the anchor's built-in resolution
+  const resolved = new URL(el.href).pathname.replace(/\/index\.html$/, "/");
+  const normalized = currentPath.replace(/\/index\.html$/, "/");
+
+  if (resolved === normalized) {
     el.classList.add("active");
   }
 });
