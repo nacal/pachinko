@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>UI Components — pachinko</title>
+  <script type="module" crossorigin src="/pachinko/assets/ui-CQk_2J8O.js"></script>
+  <link rel="modulepreload" crossorigin href="/pachinko/assets/style-CFfJ8o3q.js">
+  <link rel="modulepreload" crossorigin href="/pachinko/assets/index-cPHEEMQv.js">
+  <link rel="stylesheet" crossorigin href="/pachinko/assets/style-CUWhpBgr.css">
+</head>
+<body>
+  <nav>
+    <div class="nav-inner">
+      <a href="../" class="logo">pachinko</a>
+      <a href="../">Home</a>
+      <a href="../demo/">Demo</a>
+      <a href="../api/">API</a>
+      <a href="../ui/" class="active">UI</a>
+      <a href="https://github.com/nacal/pachinko" target="_blank" rel="noopener noreferrer">GitHub<svg class="external-icon" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3H3v10h10v-3"/><path d="M9 2h5v5"/><path d="M14 2 7 9"/></svg></a>
+    </div>
+  </nav>
+
+  <div class="container">
+    <h1>UI Components</h1>
+    <p style="color: var(--text-muted); margin-bottom: 2rem;">Live preview of <code>@pachinko/ui</code> Canvas drawing primitives.</p>
+
+    <!-- ─── Segment Display ─── -->
+    <section class="ui-section">
+      <h2>7-Segment Display</h2>
+      <p style="color: var(--text-muted);">Data lamp style digit rendering. Supports digits 0-9 with dim background segments and right-aligned multi-digit numbers.</p>
+      <div class="ui-showcase">
+        <div class="ui-preview">
+          <canvas id="demo-segment" width="460" height="120"></canvas>
+        </div>
+        <div class="ui-code">
+          <pre><code>import { drawSegmentDigit, drawSegmentNumber } from "@pachinko/ui";
+
+// Single digits
+drawSegmentDigit(ctx, "7", 10, 10, 20, 30, "#00ff66");
+
+// Right-aligned number with dim background
+drawSegmentNumber(ctx, 1234, x, y, 16, 24, "#ff4444", 4);
+
+// Different colors for different stats
+drawSegmentNumber(ctx, 42, x, y, 16, 24, "#00ff66", 4);   // green
+drawSegmentNumber(ctx, 7, x, y, 16, 24, "#ff4444", 4);    // red
+drawSegmentNumber(ctx, 319, x, y, 16, 24, "#ffaa00", 4);  // orange</code></pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── Chart Background & Grid ─── -->
+    <section class="ui-section">
+      <h2>Background, Grid &amp; Axes</h2>
+      <p style="color: var(--text-muted);">Foundation layers for chart rendering — background fill, grid lines, L-shaped axes, dashed zero line, and text labels.</p>
+      <div class="ui-showcase">
+        <div class="ui-preview">
+          <canvas id="demo-chart" width="460" height="200"></canvas>
+        </div>
+        <div class="ui-code">
+          <pre><code>import {
+  resolveChartStyle, drawBackground,
+  drawGridLines, drawAxes,
+  drawZeroLine, drawAxisLabel,
+} from "@pachinko/ui";
+
+const style = resolveChartStyle();
+
+drawBackground(ctx, w, h, style);
+drawGridLines(ctx, left, top, cw, ch, 5, 4, style);
+drawAxes(ctx, left, top, cw, ch, style);
+drawZeroLine(ctx, left, zeroY, cw, style);
+drawAxisLabel(ctx, "0", left - 6, zeroY, style,
+  "right", "middle");</code></pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── Bar Chart ─── -->
+    <section class="ui-section">
+      <h2>Bar</h2>
+      <p style="color: var(--text-muted);">Filled rectangles with optional same-color border. Used for hit history charts.</p>
+      <div class="ui-showcase">
+        <div class="ui-preview">
+          <canvas id="demo-bar" width="460" height="160"></canvas>
+        </div>
+        <div class="ui-code">
+          <pre><code>import { drawBar } from "@pachinko/ui";
+
+// Default border (0.6 opacity)
+drawBar(ctx, x, y, 40, height, "#ff4444");
+drawBar(ctx, x, y, 40, height, "#ffaa00");
+
+// No border
+drawBar(ctx, x, y, 40, height, "#00bfff", 0);</code></pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── Circle Indicators ─── -->
+    <section class="ui-section">
+      <h2>Circle &amp; Empty Slot</h2>
+      <p style="color: var(--text-muted);">Reserve ball indicators with solid colors, custom renderers, and empty slot placeholders.</p>
+      <div class="ui-showcase">
+        <div class="ui-preview">
+          <canvas id="demo-circle" width="460" height="80"></canvas>
+        </div>
+        <div class="ui-code">
+          <pre><code>import { drawCircle, drawEmptySlot } from "@pachinko/ui";
+
+// Solid colors
+drawCircle(ctx, x, y, 16, "#ffffff");
+drawCircle(ctx, x, y, 16, "#4488ff");
+drawCircle(ctx, x, y, 16, "#ff4444");
+drawCircle(ctx, x, y, 16, "#ffd700");
+
+// Custom renderer (gradient)
+drawCircle(ctx, x, y, 16, (ctx, x, y, r) => {
+  /* custom draw logic */
+}, time);
+
+// Empty slot
+drawEmptySlot(ctx, x, y, 16);</code></pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── No Data ─── -->
+    <section class="ui-section">
+      <h2>No Data</h2>
+      <p style="color: var(--text-muted);">Centered placeholder message for empty chart states.</p>
+      <div class="ui-showcase">
+        <div class="ui-preview">
+          <canvas id="demo-nodata" width="460" height="100"></canvas>
+        </div>
+        <div class="ui-code">
+          <pre><code>import { drawNoData, resolveChartStyle } from "@pachinko/ui";
+
+const style = resolveChartStyle();
+drawNoData(ctx, width, height, style);</code></pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── Combined Example ─── -->
+    <section class="ui-section">
+      <h2>Combined: Stats Panel</h2>
+      <p style="color: var(--text-muted);">A data lamp display built from @pachinko/ui primitives — 7-segment counters, labels, and hit history blocks. This is what <code>@pachinko/tracker</code> uses internally.</p>
+      <div class="ui-showcase">
+        <div class="ui-preview">
+          <canvas id="demo-combined" width="460" height="160"></canvas>
+        </div>
+        <div class="ui-code">
+          <pre><code>// Combine primitives to build complex displays
+drawBackground(ctx, w, h, style);
+
+// Column headers
+ctx.fillStyle = "#88ff88";
+ctx.fillText("回転数", col1X, y);
+
+// 7-segment counters per column
+drawSegmentNumber(ctx, 247, col1X, y,
+  16, 30, "#00ff66", 4);
+drawSegmentNumber(ctx, 3, col2X, y,
+  16, 30, "#ff4444", 4);
+drawSegmentNumber(ctx, 82, col3X, y,
+  16, 30, "#ffaa00", 4);</code></pre>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <footer>
+    <p>MIT License &copy; 2026 nacal &mdash; <a href="https://github.com/nacal/pachinko" target="_blank" rel="noopener noreferrer">GitHub<svg class="external-icon" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3H3v10h10v-3"/><path d="M9 2h5v5"/><path d="M14 2 7 9"/></svg></a></p>
+  </footer>
+
+</body>
+</html>
