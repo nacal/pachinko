@@ -12,7 +12,8 @@
     "@pachinko/rendering": "workspace:*",
     "@pachinko/effects": "workspace:*",
     "@pachinko/tracker": "workspace:*",
-    "@pachinko/reserve": "workspace:*"
+    "@pachinko/reserve": "workspace:*",
+    "@pachinko/ui": "workspace:*"
   },
   "devDependencies": {
     "vite": "^6.0.0",

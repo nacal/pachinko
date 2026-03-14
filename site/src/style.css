@@ -494,6 +494,47 @@ section h2 {
   font-size: 0.8rem;
 }
 
+/* ─── UI Showcase page ─── */
+
+.ui-section {
+  margin: 2.5rem 0;
+}
+
+.ui-showcase {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 1.5rem;
+  align-items: start;
+  margin-top: 1rem;
+}
+
+@media (max-width: 860px) {
+  .ui-showcase {
+    grid-template-columns: 1fr;
+  }
+}
+
+.ui-preview {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0;
+  overflow: hidden;
+}
+
+.ui-preview canvas {
+  display: block;
+}
+
+.ui-code {
+  min-width: 0;
+}
+
+.ui-code pre {
+  margin: 0;
+  font-size: 0.8rem;
+}
+
 /* ─── Footer ─── */
 
 footer {

@@ -127,6 +127,9 @@ importers:
       '@pachinko/tracker':
         specifier: workspace:*
         version: link:../packages/tracker
+      '@pachinko/ui':
+        specifier: workspace:*
+        version: link:../packages/ui
     devDependencies:
       typescript:
         specifier: ^5.8.0

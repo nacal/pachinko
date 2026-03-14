@@ -10,6 +10,7 @@ export default defineConfig({
         main: resolve(__dirname, "index.html"),
         demo: resolve(__dirname, "demo/index.html"),
         api: resolve(__dirname, "api/index.html"),
+        ui: resolve(__dirname, "ui/index.html"),
       },
     },
   },
