@@ -53,6 +53,8 @@ function computeReelSpeed(
 
     case "stopping-center": {
       if (reelIndex !== 1) return 0;
+      // After reach presentation, skip the slowdown — presentation was the drama
+      if (isReach && timing.enableReachPresentation) return 0;
       const duration = isReach ? timing.reachSlowdownDuration : timing.stopInterval;
       const p = progress(elapsed, duration);
       return isReach ? 1 - easeInOutSine(p) : 1 - easeOutQuad(p);
