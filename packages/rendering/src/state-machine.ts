@@ -35,19 +35,37 @@ export function skipToResult(state: ReelAnimationState): ReelAnimationState {
   return { ...state, phase: "result", phaseStartTime: 0 };
 }
 
+export function resolveReachPresentation(
+  state: ReelAnimationState,
+  now: number,
+): ReelAnimationState {
+  if (state.phase !== "reach-presentation") return state;
+  return { ...state, phase: "stopping-center", phaseStartTime: now };
+}
+
 const PHASE_ORDER: readonly ReelPhase[] = [
   "idle",
   "spinning",
   "stopping-left",
   "stopping-right",
+  "reach-presentation",
   "stopping-center",
   "result",
 ];
 
-function nextPhaseOf(phase: ReelPhase): ReelPhase {
+function nextPhaseOf(
+  phase: ReelPhase,
+  isReach: boolean,
+  enableReachPresentation: boolean,
+): ReelPhase {
   const index = PHASE_ORDER.indexOf(phase);
   if (index === -1 || index >= PHASE_ORDER.length - 1) return phase;
-  return PHASE_ORDER[index + 1]!;
+  const next = PHASE_ORDER[index + 1]!;
+  // Skip reach-presentation if not a reach or feature disabled
+  if (next === "reach-presentation" && (!isReach || !enableReachPresentation)) {
+    return PHASE_ORDER[index + 2]!;
+  }
+  return next;
 }
 
 function phaseDuration(
@@ -67,6 +85,8 @@ function phaseDuration(
       );
     case "stopping-right":
       return timing.stopInterval + timing.stopBounceDuration;
+    case "reach-presentation":
+      return Infinity; // Waits for resolveReach()
     default:
       return Infinity;
   }
@@ -78,7 +98,7 @@ export function tick(
   now: number,
   timing: TimingConfig,
 ): ReelAnimationState {
-  if (state.phase === "idle" || state.phase === "result") {
+  if (state.phase === "idle" || state.phase === "result" || state.phase === "reach-presentation") {
     return state;
   }
 
@@ -86,7 +106,7 @@ export function tick(
   const duration = phaseDuration(state.phase, timing, state.isReach);
 
   if (elapsed >= duration) {
-    const next = nextPhaseOf(state.phase);
+    const next = nextPhaseOf(state.phase, state.isReach, timing.enableReachPresentation);
     return {
       ...state,
       phase: next,

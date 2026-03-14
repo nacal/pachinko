@@ -9,7 +9,7 @@ import type {
   TimingConfig,
   StyleConfig,
 } from "./types.js";
-import { createIdleState, startSpin, skipToResult, tick, phaseElapsed } from "./state-machine.js";
+import { createIdleState, startSpin, skipToResult, resolveReachPresentation, tick, phaseElapsed } from "./state-machine.js";
 import { resolveTiming, resolveStyle, computeReelLayouts, VISIBLE_SYMBOL_COUNT } from "./constants.js";
 import { createReelStrip, getVisibleSymbols, computeTargetOffset } from "./reel-strip.js";
 import { easeInQuad, easeOutQuad, easeInOutSine, progress } from "./animation.js";
@@ -26,6 +26,7 @@ function computeReelSpeed(
   switch (phase) {
     case "idle":
     case "result":
+    case "reach-presentation":
       return 0;
 
     case "spinning": {
@@ -145,7 +146,10 @@ export function createInlineReelRenderer(
         const reels = animState.result.reels;
         if (animState.phase === "stopping-right" && prevPhase === "stopping-left") {
           for (const cb of reelStopCallbacks) cb("left", reels.left);
-        } else if (animState.phase === "stopping-center" && prevPhase === "stopping-right") {
+        } else if (
+          (animState.phase === "stopping-center" || animState.phase === "reach-presentation") &&
+          prevPhase === "stopping-right"
+        ) {
           for (const cb of reelStopCallbacks) cb("right", reels.right);
         } else if (animState.phase === "result" && prevPhase === "stopping-center") {
           for (const cb of reelStopCallbacks) cb("center", reels.center);
@@ -159,6 +163,7 @@ export function createInlineReelRenderer(
 
     renderFrame(ctx, canvas.width, canvas.height, animState, symbols, timing, style, now);
 
+    // Keep rAF loop running during reach-presentation (frozen frame stays rendered)
     if (animState.phase !== "idle" && animState.phase !== "result") {
       animFrameId = requestAnimationFrame(loop);
     } else {
@@ -187,6 +192,17 @@ export function createInlineReelRenderer(
 
     onReelStop(callback: (reel: ReelPosition, symbol: SymbolSpec) => void): void {
       reelStopCallbacks.push(callback);
+    },
+
+    resolveReach(): void {
+      if (destroyed) return;
+      if (animState.phase !== "reach-presentation") return;
+      animState = resolveReachPresentation(animState, performance.now());
+      for (const cb of phaseCallbacks) cb(animState.phase);
+      // Restart animation loop if it was running
+      if (animFrameId === null) {
+        animFrameId = requestAnimationFrame(loop);
+      }
     },
 
     skipToResult(): void {

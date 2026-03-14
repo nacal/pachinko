@@ -21,6 +21,7 @@ export type ReelPhase =
   | "spinning"
   | "stopping-left"
   | "stopping-right"
+  | "reach-presentation"
   | "stopping-center"
   | "result";
 
@@ -40,6 +41,7 @@ export type EffectPhase =
   | "spin-start"
   | "pre-reach"
   | "reach"
+  | "reach-presentation"
   | "post-reach"
   | "result";
 
@@ -178,6 +180,17 @@ export interface EffectRule {
   readonly exclusive?: boolean;
 }
 
+// ─── Reach Presentation ───
+
+export interface ReachPresentation {
+  readonly id: string;
+  readonly condition: EffectCondition;
+  readonly effects: readonly EffectOrComposite[];
+  readonly priority?: number;
+  /** If true, user must confirm (button press) after presentation completes. Default: true */
+  readonly requireConfirm?: boolean;
+}
+
 // ─── Timeline ───
 
 export interface TimelineEntry {
@@ -202,6 +215,7 @@ export interface ShakeOffset {
 
 export interface EffectsEngineConfig {
   readonly rules: readonly EffectRule[];
+  readonly reachPresentations?: readonly ReachPresentation[];
 }
 
 export interface EffectsEngine {
@@ -211,6 +225,12 @@ export interface EffectsEngine {
   tick(now: number): void;
   getShakeOffset(): ShakeOffset;
   onComplete(callback: () => void): void;
+  /** Register callback fired when reach presentation resolves (effects done + confirm if required) */
+  onReachPresentationEnd(callback: () => void): void;
+  /** Check if currently in a reach presentation */
+  isInReachPresentation(): boolean;
+  /** Signal user confirmation during reach presentation (e.g., button press) */
+  confirmReachPresentation(): void;
   skipToResult(): void;
   resize(width: number, height: number): void;
   destroy(): void;
@@ -222,4 +242,5 @@ export interface ReelRendererLike {
   onPhaseChange(callback: (phase: ReelPhase) => void): void;
   onReelStop(callback: (reel: ReelPosition, symbol: SymbolSpec) => void): void;
   onComplete(callback: () => void): void;
+  resolveReach?(): void;
 }

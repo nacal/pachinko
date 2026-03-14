@@ -6,6 +6,7 @@ export type WorkerInMessage =
   | { readonly type: "init"; readonly canvas: OffscreenCanvas; readonly config: RenderConfig; readonly width: number; readonly height: number }
   | { readonly type: "spin"; readonly result: DrawResultInput }
   | { readonly type: "skip" }
+  | { readonly type: "resolve-reach" }
   | { readonly type: "resize"; readonly width: number; readonly height: number }
   | { readonly type: "destroy" };
 

@@ -99,6 +99,11 @@ function createWorkerReelRenderer(
       reelStopCallbacks.push(callback);
     },
 
+    resolveReach(): void {
+      if (destroyed) return;
+      worker.postMessage({ type: "resolve-reach" });
+    },
+
     skipToResult(): void {
       if (destroyed) return;
       worker.postMessage({ type: "skip" });

@@ -6,6 +6,7 @@ export const DEFAULT_TIMING: TimingConfig = {
   stopInterval: 500,
   reachSlowdownDuration: 2000,
   stopBounceDuration: 150,
+  enableReachPresentation: false,
 } as const;
 
 export const DEFAULT_STYLE: StyleConfig = {

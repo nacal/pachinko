@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { createEffectsEngine } from "../src/engine.js";
 import { flash, shake, textOverlay } from "../src/primitives.js";
 import { sequence } from "../src/composer.js";
@@ -29,6 +29,7 @@ function createMockCanvas() {
 
 describe("createEffectsEngine", () => {
   let canvas: ReturnType<typeof createMockCanvas>;
+  let now: number;
 
   const rules: EffectRule[] = [
     {
@@ -45,6 +46,12 @@ describe("createEffectsEngine", () => {
 
   beforeEach(() => {
     canvas = createMockCanvas();
+    now = 1000;
+    vi.spyOn(performance, "now").mockReturnValue(now);
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
   });
 
   it("creates engine", () => {
@@ -59,7 +66,7 @@ describe("createEffectsEngine", () => {
     engine.start(oatariResult);
     engine.setPhase("result");
     // Tick should render the flash
-    engine.tick(performance.now() + 50);
+    engine.tick(now + 50);
     expect(canvas.ctx.fillRect).toHaveBeenCalled();
   });
 
@@ -67,7 +74,7 @@ describe("createEffectsEngine", () => {
     const engine = createEffectsEngine(canvas as unknown as HTMLCanvasElement, { rules });
     engine.start(hazureResult);
     engine.setPhase("result");
-    engine.tick(performance.now() + 50);
+    engine.tick(now + 50);
     // No oatari match, so only clearRect should be called
     expect(canvas.ctx.fillRect).not.toHaveBeenCalled();
   });
@@ -76,7 +83,7 @@ describe("createEffectsEngine", () => {
     const engine = createEffectsEngine(canvas as unknown as HTMLCanvasElement, { rules });
     engine.start(reachHazureResult);
     engine.setPhase("reach");
-    engine.tick(performance.now() + 50);
+    engine.tick(now + 50);
     const offset = engine.getShakeOffset();
     expect(offset).toBeDefined();
     expect(typeof offset.x).toBe("number");
@@ -90,7 +97,7 @@ describe("createEffectsEngine", () => {
     engine.start(oatariResult);
     engine.setPhase("result");
     // Tick past the entire timeline
-    engine.tick(performance.now() + 300);
+    engine.tick(now + 300);
     expect(cb).toHaveBeenCalled();
   });
 
@@ -110,7 +117,7 @@ describe("createEffectsEngine", () => {
     // No error thrown, engine continues to work
     engine.start(oatariResult);
     engine.setPhase("result");
-    engine.tick(performance.now() + 50);
+    engine.tick(now + 50);
     expect(canvas.ctx.clearRect).toHaveBeenCalledWith(0, 0, 800, 600);
   });
 
@@ -120,7 +127,7 @@ describe("createEffectsEngine", () => {
     engine.setPhase("result");
     engine.destroy();
     canvas.ctx.clearRect.mockClear();
-    engine.tick(performance.now() + 50);
+    engine.tick(now + 50);
     expect(canvas.ctx.clearRect).not.toHaveBeenCalled();
   });
 
@@ -136,7 +143,7 @@ describe("createEffectsEngine", () => {
     engine.start(oatariResult);
     engine.setReelStop("left", { id: "7", label: "7", isKakuhen: true });
     engine.setPhase("pre-reach");
-    engine.tick(performance.now() + 10);
+    engine.tick(now + 10);
     expect(canvas.ctx.fillRect).toHaveBeenCalled();
   });
 });

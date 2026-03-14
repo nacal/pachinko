@@ -18,7 +18,7 @@ import {
   sequence,
   parallel,
 } from "@pachinko/effects";
-import type { EffectRule } from "@pachinko/effects";
+import type { EffectRule, ReachPresentation } from "@pachinko/effects";
 import {
   createSessionTracker,
   renderStatsPanel,
@@ -112,6 +112,7 @@ async function loadSymbolStrip(): Promise<SymbolSpec[]> {
 const canvas = document.getElementById("reel-canvas") as HTMLCanvasElement;
 const effectsCanvas = document.getElementById("effects-canvas") as HTMLCanvasElement;
 const btnSpin = document.getElementById("btn-spin") as HTMLButtonElement;
+const btnConfirm = document.getElementById("btn-confirm") as HTMLButtonElement;
 const btnSkip = document.getElementById("btn-skip") as HTMLButtonElement;
 const modeBanner = document.getElementById("mode-banner")!;
 const modeLabel = document.getElementById("mode-label")!;
@@ -242,6 +243,67 @@ const effectRules: EffectRule[] = [
   },
 ];
 
+// ─── Reach presentations ───
+
+const reachPresentations: ReachPresentation[] = [
+  {
+    id: "normal-reach",
+    condition: { isReach: true },
+    effects: [
+      sequence(
+        textOverlay("リーチ!", {
+          font: "bold 72px sans-serif",
+          color: "#ff0000",
+          timing: { delay: 0, duration: 1500 },
+          fadeIn: 200,
+          fadeOut: 300,
+        }),
+        parallel(
+          flash({ color: "#ff4444", opacity: 0.5, count: 5, timing: { delay: 0, duration: 1000 } }),
+          shake({ intensity: 8, frequency: 30, timing: { delay: 0, duration: 1000 } }),
+        ),
+        textOverlay("ボタンを押せ!", {
+          font: "bold 48px sans-serif",
+          color: "#ffd700",
+          timing: { delay: 0, duration: 3000 },
+          fadeIn: 100,
+          fadeOut: 0,
+        }),
+      ),
+    ],
+    requireConfirm: true,
+  },
+  {
+    id: "kakuhen-super-reach",
+    condition: { isReach: true, gameMode: "kakuhen" },
+    effects: [
+      sequence(
+        flash({ color: "#ff0000", opacity: 0.8, count: 10, timing: { delay: 0, duration: 2000 } }),
+        textOverlay("超激アツ!", {
+          font: "bold 96px sans-serif",
+          color: "#ff0000",
+          timing: { delay: 0, duration: 2000 },
+          fadeIn: 300,
+          fadeOut: 500,
+        }),
+        parallel(
+          shake({ intensity: 15, frequency: 50, timing: { delay: 0, duration: 1500 } }),
+          flash({ color: "#ffd700", opacity: 0.6, count: 8, timing: { delay: 0, duration: 1500 } }),
+        ),
+        textOverlay("ボタンを押せ!", {
+          font: "bold 48px sans-serif",
+          color: "#ffd700",
+          timing: { delay: 0, duration: 3000 },
+          fadeIn: 100,
+          fadeOut: 0,
+        }),
+      ),
+    ],
+    priority: 10,
+    requireConfirm: true,
+  },
+];
+
 // ─── State ───
 
 const rng = createRng({ value: Date.now() });
@@ -262,16 +324,42 @@ async function init(): Promise<void> {
       baseSpinDuration: 800,
       stopInterval: 400,
       reachSlowdownDuration: 1800,
+      enableReachPresentation: true,
     },
   });
 
   // ─── Effects engine ───
-  const effectsEngine = createEffectsEngine(effectsCanvas, { rules: effectRules });
+  const effectsEngine = createEffectsEngine(effectsCanvas, {
+    rules: effectRules,
+    reachPresentations,
+  });
   connectRenderer(renderer, effectsEngine);
+
+  // Show/hide confirm button based on reach presentation state
+  function updateConfirmButton(): void {
+    if (effectsEngine.isInReachPresentation()) {
+      btnConfirm.style.display = "";
+      btnSpin.style.display = "none";
+    } else {
+      btnConfirm.style.display = "none";
+      btnSpin.style.display = "";
+    }
+  }
+
+  renderer.onPhaseChange((phase) => {
+    if (phase === "reach-presentation") {
+      updateConfirmButton();
+    }
+  });
+
+  effectsEngine.onReachPresentationEnd(() => {
+    updateConfirmButton();
+  });
 
   renderer.onComplete(() => {
     spinning = false;
     btnSpin.disabled = false;
+    updateConfirmButton();
   });
 
   function doSpin(): void {
@@ -307,17 +395,29 @@ async function init(): Promise<void> {
   }
 
   btnSpin.addEventListener("click", doSpin);
+
+  btnConfirm.addEventListener("click", () => {
+    effectsEngine.confirmReachPresentation();
+  });
+
   btnSkip.addEventListener("click", () => {
     if (spinning) {
+      if (effectsEngine.isInReachPresentation()) {
+        effectsEngine.confirmReachPresentation();
+      }
       renderer.skipToResult();
       effectsEngine.skipToResult();
     }
   });
 
   document.addEventListener("keydown", (e) => {
-    if (e.code === "Space" && !spinning) {
+    if (e.code === "Space") {
       e.preventDefault();
-      doSpin();
+      if (effectsEngine.isInReachPresentation()) {
+        effectsEngine.confirmReachPresentation();
+      } else if (!spinning) {
+        doSpin();
+      }
     }
   });
 

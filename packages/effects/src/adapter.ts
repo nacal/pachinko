@@ -9,6 +9,7 @@ const REEL_PHASE_TO_EFFECT_PHASE: Partial<Record<ReelPhase, EffectPhase>> = {
   spinning: "spin-start",
   "stopping-left": "pre-reach",
   "stopping-right": "reach",
+  "reach-presentation": "reach-presentation",
   "stopping-center": "post-reach",
   result: "result",
 };
@@ -39,6 +40,11 @@ export function connectRenderer(
       animationId = null;
     }
   }
+
+  // When reach presentation ends, tell renderer to resume center reel
+  engine.onReachPresentationEnd(() => {
+    renderer.resolveReach?.();
+  });
 
   renderer.onPhaseChange((phase) => {
     const effectPhase = REEL_PHASE_TO_EFFECT_PHASE[phase];

@@ -2,8 +2,10 @@ import type {
   DrawResultInput,
   EffectContext,
   EffectPhase,
+  EffectRule,
   EffectsEngine,
   EffectsEngineConfig,
+  ReachPresentation,
   ReelPosition,
   ShakeOffset,
   SymbolSpec,
@@ -37,6 +39,13 @@ export function createEffectsEngine(
 
   const completeCallbacks: Array<() => void> = [];
 
+  // ─── Reach presentation state ───
+  let reachPresentationActive = false;
+  let presentationComplete = false;
+  let userConfirmed = false;
+  let currentRequireConfirm = true;
+  const reachPresentationEndCallbacks: Array<() => void> = [];
+
   function getContext(): EffectContext {
     return {
       drawResult: drawResult!,
@@ -45,9 +54,66 @@ export function createEffectsEngine(
     };
   }
 
+  function checkReachPresentationEnd(): void {
+    if (!reachPresentationActive) return;
+    const resolved = currentRequireConfirm
+      ? presentationComplete && userConfirmed
+      : presentationComplete;
+    if (resolved) {
+      reachPresentationActive = false;
+      for (const cb of reachPresentationEndCallbacks) cb();
+    }
+  }
+
+  function activateReachPresentation(now: number): void {
+    if (!drawResult) return;
+
+    const presentations = config.reachPresentations;
+    if (!presentations || presentations.length === 0) {
+      // No presentations defined — resolve immediately
+      for (const cb of reachPresentationEndCallbacks) cb();
+      return;
+    }
+
+    const context = getContext();
+    // Use the same rule evaluation logic (condition, priority, exclusive)
+    const asRules: EffectRule[] = presentations.map((p) => ({
+      id: p.id,
+      condition: p.condition,
+      effects: p.effects,
+      priority: p.priority,
+    }));
+    const matched = evaluateRules(asRules, context);
+
+    if (matched.length === 0) {
+      // No matching presentation — resolve immediately
+      for (const cb of reachPresentationEndCallbacks) cb();
+      return;
+    }
+
+    // Find the original ReachPresentation to get requireConfirm
+    const matchedPresentation = presentations.find((p) => p.id === matched[0]!.id);
+    currentRequireConfirm = matchedPresentation?.requireConfirm !== false;
+
+    reachPresentationActive = true;
+    presentationComplete = false;
+    userConfirmed = false;
+
+    // Build timeline from matched presentation effects (use first matched only)
+    const allEffects = matched[0]!.effects;
+    const timeline = buildTimeline(allEffects);
+    activePhaseState = { phase: "reach-presentation", timeline, startTime: now };
+  }
+
   function activatePhase(phase: EffectPhase, now: number): void {
     if (!drawResult) return;
     currentPhase = phase;
+
+    // Handle reach presentation phase specially
+    if (phase === "reach-presentation") {
+      activateReachPresentation(now);
+      return;
+    }
 
     const context = getContext();
     const matchedRules = evaluateRules(config.rules, context);
@@ -70,6 +136,9 @@ export function createEffectsEngine(
     activePhaseState = null;
     currentPhase = null;
     currentShakeOffset = { x: 0, y: 0 };
+    reachPresentationActive = false;
+    presentationComplete = false;
+    userConfirmed = false;
   }
 
   function setPhase(phase: EffectPhase): void {
@@ -93,6 +162,14 @@ export function createEffectsEngine(
 
     if (elapsed >= timeline.totalDuration) {
       activePhaseState = null;
+
+      // If this was a reach presentation, mark effects as complete
+      if (currentPhase === "reach-presentation") {
+        presentationComplete = true;
+        checkReachPresentationEnd();
+        return;
+      }
+
       for (const cb of completeCallbacks) cb();
       return;
     }
@@ -116,7 +193,27 @@ export function createEffectsEngine(
     completeCallbacks.push(callback);
   }
 
+  function onReachPresentationEnd(callback: () => void): void {
+    reachPresentationEndCallbacks.push(callback);
+  }
+
+  function isInReachPresentation(): boolean {
+    return reachPresentationActive;
+  }
+
+  function confirmReachPresentation(): void {
+    if (!reachPresentationActive) return;
+    userConfirmed = true;
+    checkReachPresentationEnd();
+  }
+
   function skipToResult(): void {
+    // Clear reach presentation state
+    if (reachPresentationActive) {
+      reachPresentationActive = false;
+      presentationComplete = false;
+      userConfirmed = false;
+    }
     activePhaseState = null;
     currentShakeOffset = { x: 0, y: 0 };
     ctx.clearRect(0, 0, width, height);
@@ -130,7 +227,9 @@ export function createEffectsEngine(
   function destroy(): void {
     destroyed = true;
     activePhaseState = null;
+    reachPresentationActive = false;
     completeCallbacks.length = 0;
+    reachPresentationEndCallbacks.length = 0;
   }
 
   return {
@@ -140,6 +239,9 @@ export function createEffectsEngine(
     tick,
     getShakeOffset,
     onComplete,
+    onReachPresentationEnd,
+    isInReachPresentation,
+    confirmReachPresentation,
     skipToResult,
     resize,
     destroy,

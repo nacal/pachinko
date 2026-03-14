@@ -26,6 +26,7 @@ export type {
   EffectContext,
   EffectCondition,
   EffectRule,
+  ReachPresentation,
   TimelineEntry,
   Timeline,
   ShakeOffset,

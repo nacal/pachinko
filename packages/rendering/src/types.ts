@@ -29,6 +29,7 @@ export type ReelPhase =
   | "spinning"
   | "stopping-left"
   | "stopping-right"
+  | "reach-presentation"
   | "stopping-center"
   | "result";
 
@@ -66,6 +67,8 @@ export interface TimingConfig {
   readonly stopInterval: number;
   readonly reachSlowdownDuration: number;
   readonly stopBounceDuration: number;
+  /** Enable reach-presentation phase that pauses before center reel stops. Default: false */
+  readonly enableReachPresentation: boolean;
 }
 
 // ─── Style configuration ───
@@ -100,6 +103,8 @@ export interface ReelRenderer {
   onPhaseChange(callback: (phase: ReelPhase) => void): void;
   /** Register callback fired when an individual reel stops */
   onReelStop(callback: (reel: ReelPosition, symbol: SymbolSpec) => void): void;
+  /** Resume center reel after reach presentation. No-op if not in reach-presentation phase. */
+  resolveReach(): void;
   /** Force stop immediately (skip animation) */
   skipToResult(): void;
   /** Resize the renderer to match canvas size changes */

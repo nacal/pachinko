@@ -8,7 +8,7 @@ import type {
   ReelLayout,
 } from "./types.js";
 import type { WorkerInMessage, WorkerOutMessage } from "./messages.js";
-import { createIdleState, startSpin, skipToResult, tick, phaseElapsed } from "./state-machine.js";
+import { createIdleState, startSpin, skipToResult, resolveReachPresentation, tick, phaseElapsed } from "./state-machine.js";
 import { resolveTiming, resolveStyle, computeReelLayouts, VISIBLE_SYMBOL_COUNT } from "./constants.js";
 import { createReelStrip, getVisibleSymbols, computeTargetOffset } from "./reel-strip.js";
 import { easeInQuad, easeOutQuad, easeInOutSine, easeOutBounce, progress, clamp01 } from "./animation.js";
@@ -38,6 +38,7 @@ function computeReelSpeed(
   switch (phase) {
     case "idle":
     case "result":
+    case "reach-presentation":
       return 0;
 
     case "spinning": {
@@ -141,7 +142,10 @@ function animationLoop(rs: RendererState): void {
         const reels = rs.animState.result.reels;
         if (rs.animState.phase === "stopping-right" && prevPhase === "stopping-left") {
           rs.postMessage({ type: "reel-stop", reel: "left", symbol: reels.left });
-        } else if (rs.animState.phase === "stopping-center" && prevPhase === "stopping-right") {
+        } else if (
+          (rs.animState.phase === "stopping-center" || rs.animState.phase === "reach-presentation") &&
+          prevPhase === "stopping-right"
+        ) {
           rs.postMessage({ type: "reel-stop", reel: "right", symbol: reels.right });
         } else if (rs.animState.phase === "result" && prevPhase === "stopping-center") {
           rs.postMessage({ type: "reel-stop", reel: "center", symbol: reels.center });
@@ -157,7 +161,7 @@ function animationLoop(rs: RendererState): void {
 
     if (rs.animState.phase !== "idle" && rs.animState.phase !== "result") {
       rs.animFrameId = requestAnimationFrame(loop);
-    } else if (rs.animState.phase === "result") {
+    } else {
       rs.animFrameId = null;
     }
   };
@@ -219,6 +223,15 @@ export function createWorkerRenderer(
 
           rs.postMessage({ type: "phase-change", phase: "result" });
           rs.postMessage({ type: "complete" });
+          break;
+        }
+        case "resolve-reach": {
+          if (rs.animState.phase !== "reach-presentation") break;
+          rs.animState = resolveReachPresentation(rs.animState, performance.now());
+          rs.postMessage({ type: "phase-change", phase: rs.animState.phase });
+          if (rs.animFrameId === null) {
+            animationLoop(rs);
+          }
           break;
         }
         case "resize": {
