@@ -1,7 +1,7 @@
 {
-  "name": "@pachinko/tracker",
+  "name": "@pachinko/ui",
   "version": "0.1.0",
-  "description": "Session data tracking and Canvas visualization for pachinko — slump graphs, hit history charts, and data lamp stats",
+  "description": "Canvas-based UI component library for pachinko — segments, charts, indicators",
   "license": "MIT",
   "type": "module",
   "main": "./dist/index.cjs",
@@ -32,9 +32,6 @@
     "test:coverage": "vitest run --coverage",
     "typecheck": "tsc --noEmit"
   },
-  "dependencies": {
-    "@pachinko/ui": "workspace:*"
-  },
   "devDependencies": {
     "tsup": "^8.5.0",
     "vitest": "^3.1.0",
@@ -43,10 +40,9 @@
   },
   "keywords": [
     "pachinko",
-    "tracker",
-    "statistics",
-    "chart",
-    "slump-graph",
-    "data-lamp"
+    "ui",
+    "canvas",
+    "components",
+    "7-segment"
   ]
 }

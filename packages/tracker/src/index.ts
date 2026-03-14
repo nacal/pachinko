@@ -9,6 +9,7 @@ export type {
   HitEntry,
   BallDataPoint,
   SessionSnapshot,
+  LastHitInfo,
   SessionStats,
   SessionTracker,
   ChartStyle,
@@ -16,21 +17,21 @@ export type {
   HitHistoryOptions,
   StatsPanelOptions,
   StatsPanelRow,
-} from "./types.js";
+} from "./types";
 
 // ─── Utils ───
-export { formatProbability, clamp } from "./utils.js";
+export { formatProbability, clamp } from "./utils";
 
 // ─── Stats ───
-export { computeStats, computeMaxDrought, computeStreakStats } from "./stats.js";
+export { computeStats, computeMaxDrought, computeStreakStats } from "./stats";
 
 // ─── Tracker ───
-export { createSessionTracker } from "./tracker.js";
+export { createSessionTracker } from "./tracker";
 
 // ─── Chart Utilities ───
-export { resolveChartStyle, DEFAULT_CHART_STYLE } from "./chart-utils.js";
+export { resolveChartStyle, DEFAULT_CHART_STYLE } from "./chart-utils";
 
 // ─── Charts ───
-export { renderSlumpGraph } from "./charts/slump-graph.js";
-export { renderHitHistory } from "./charts/hit-history.js";
-export { renderStatsPanel } from "./charts/stats-panel.js";
+export { renderSlumpGraph } from "./charts/slump-graph";
+export { renderHitHistory } from "./charts/hit-history";
+export { renderStatsPanel } from "./charts/stats-panel";

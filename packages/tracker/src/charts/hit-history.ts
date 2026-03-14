@@ -1,5 +1,5 @@
-import type { HitEntry, HitHistoryOptions, ChartStyle } from "../types.js";
-import { resolveChartStyle, drawBackground, getBonusColor, drawAxisLabel } from "../chart-utils.js";
+import type { HitEntry, HitHistoryOptions } from "../types";
+import { resolveChartStyle, drawBackground, getBonusColor, drawAxisLabel, drawNoData, drawAxes, drawBar } from "../chart-utils";
 
 const PADDING = { top: 20, right: 20, bottom: 40, left: 50 };
 const BAR_GAP_RATIO = 0.2;
@@ -45,15 +45,7 @@ export function renderHitHistory(
   const barWidth = totalBarWidth - gap;
 
   // Axes
-  ctx.save();
-  ctx.strokeStyle = style.axisColor;
-  ctx.lineWidth = 1;
-  ctx.beginPath();
-  ctx.moveTo(chartLeft, chartTop);
-  ctx.lineTo(chartLeft, chartTop + chartHeight);
-  ctx.lineTo(chartLeft + chartWidth, chartTop + chartHeight);
-  ctx.stroke();
-  ctx.restore();
+  drawAxes(ctx, chartLeft, chartTop, chartWidth, chartHeight, style);
 
   // Draw bars
   for (let i = 0; i < visibleHits.length; i++) {
@@ -64,17 +56,7 @@ export function renderHitHistory(
 
     const color = getBonusColor(style, hit.bonusType.id);
 
-    // Bar
-    ctx.save();
-    ctx.fillStyle = color;
-    ctx.fillRect(x, y, barWidth, barHeight);
-
-    // Slight border
-    ctx.strokeStyle = color;
-    ctx.globalAlpha = 0.6;
-    ctx.lineWidth = 1;
-    ctx.strokeRect(x, y, barWidth, barHeight);
-    ctx.restore();
+    drawBar(ctx, x, y, barWidth, barHeight, color);
 
     // Label above bar
     if (showLabels) {
@@ -107,19 +89,4 @@ export function renderHitHistory(
     const y = chartTop + chartHeight - (val / yMax) * chartHeight;
     drawAxisLabel(ctx, String(val), chartLeft - 6, y, style, "right", "middle");
   }
-}
-
-function drawNoData(
-  ctx: CanvasRenderingContext2D,
-  width: number,
-  height: number,
-  style: ChartStyle,
-): void {
-  ctx.save();
-  ctx.fillStyle = style.textColor;
-  ctx.font = style.font;
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  ctx.fillText("No data", width / 2, height / 2);
-  ctx.restore();
 }

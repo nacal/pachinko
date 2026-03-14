@@ -1,58 +1,64 @@
-import type { SessionStats, StatsPanelOptions, StatsPanelRow, ChartStyle } from "../types.js";
-import { resolveChartStyle, drawBackground } from "../chart-utils.js";
+import type { SessionStats, StatsPanelOptions, ChartStyle } from "../types";
+import { resolveChartStyle, drawBackground, drawSegmentDigit, drawSegmentNumber } from "../chart-utils";
 
-const DEFAULT_ROWS: StatsPanelRow[] = [
-  "rotations",
-  "hitCount",
-  "probability",
-  "streaks",
-  "maxDrought",
-  "netBalls",
-];
+const PAD = 12;
 
-const PADDING = { top: 16, right: 16, bottom: 16, left: 16 };
+// ─── Hit history mini blocks ───
 
-interface RowData {
-  label: string;
-  value: string;
-  color?: string;
-}
+function drawHitBlocks(
+  ctx: CanvasRenderingContext2D,
+  stats: SessionStats,
+  x: number,
+  y: number,
+  width: number,
+  blockH: number,
+  style: ChartStyle,
+): void {
+  const lastHits = stats.lastHitRotations;
+  if (!lastHits || lastHits.length === 0) {
+    ctx.save();
+    ctx.fillStyle = style.textColor;
+    ctx.globalAlpha = 0.3;
+    ctx.font = "11px monospace";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("─", x + width / 2, y + blockH / 2);
+    ctx.restore();
+    return;
+  }
 
-function getRowData(row: StatsPanelRow, stats: SessionStats, style: ChartStyle): RowData {
-  switch (row) {
-    case "rotations":
-      return {
-        label: "回転数",
-        value: `${stats.currentRotations} / ${stats.totalSpins}`,
-      };
-    case "hitCount":
-      return {
-        label: "大当たり",
-        value: `${stats.totalHits}  (確変 ${stats.kakuhenCount} / 通常 ${stats.normalCount})`,
-      };
-    case "probability":
-      return {
-        label: "確率",
-        value: `実測 ${stats.observedProbability}  スペック ${stats.specProbability}`,
-      };
-    case "streaks":
-      return {
-        label: "連チャン",
-        value: `現在 ${stats.currentStreak} / 最大 ${stats.maxStreak} / 平均 ${stats.averageStreak}`,
-      };
-    case "maxDrought":
-      return {
-        label: "最大ハマり",
-        value: String(stats.maxDrought),
-      };
-    case "netBalls":
-      return {
-        label: "差玉",
-        value: stats.netBalls >= 0 ? `+${stats.netBalls}` : String(stats.netBalls),
-        color: stats.netBalls >= 0 ? style.positiveColor : style.negativeColor,
-      };
+  const maxSlots = 5;
+  const gap = 4;
+  const slotW = (width - gap * (maxSlots - 1)) / maxSlots;
+
+  for (let i = 0; i < maxSlots; i++) {
+    const sx = x + i * (slotW + gap);
+
+    // Empty slot background
+    ctx.fillStyle = "rgba(255,255,255,0.04)";
+    ctx.fillRect(sx, y, slotW, blockH);
+
+    if (i < lastHits.length) {
+      const hit = lastHits[i]!;
+      const bonusColor = style.bonusColors[hit.bonusTypeId] ?? style.defaultBonusColor;
+
+      // Color indicator bar at top
+      ctx.fillStyle = bonusColor;
+      ctx.fillRect(sx, y, slotW, 3);
+
+      // Rotation count
+      ctx.save();
+      ctx.fillStyle = style.textColor;
+      ctx.font = "bold 12px monospace";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(String(hit.rotations), sx + slotW / 2, y + blockH / 2 + 2);
+      ctx.restore();
+    }
   }
 }
+
+// ─── Main renderer ───
 
 export function renderStatsPanel(
   ctx: CanvasRenderingContext2D,
@@ -62,65 +68,145 @@ export function renderStatsPanel(
   options?: StatsPanelOptions,
 ): void {
   const style = resolveChartStyle(options?.style);
-  const rows = options?.rows ?? DEFAULT_ROWS;
 
   drawBackground(ctx, width, height, style);
 
-  const contentWidth = width - PADDING.left - PADDING.right;
-  const contentHeight = height - PADDING.top - PADDING.bottom;
+  // Layout: 3 big counters in a row, then hit history blocks below
+  const digitH = 30;
+  const digitW = 16;
+  const labelSize = 11;
+  const counterY = PAD + labelSize + 6;
 
-  let y = PADDING.top;
+  // Split width into 3 columns
+  const colW = (width - PAD * 2) / 3;
 
-  // Machine name header
-  if (options?.machineName) {
-    ctx.save();
-    ctx.fillStyle = style.textColor;
-    ctx.font = style.titleFont;
-    ctx.textAlign = "center";
-    ctx.textBaseline = "top";
-    ctx.fillText(options.machineName, width / 2, y);
-    ctx.restore();
-    y += 28;
-  }
-
-  const rowHeight = Math.min(
-    (contentHeight - (options?.machineName ? 28 : 0)) / rows.length,
-    36,
-  );
-
-  // Divider line
+  // ─── Column 1: 回転数 (current rotations since last hit) ───
+  const col1X = PAD;
   ctx.save();
-  ctx.strokeStyle = style.gridColor;
-  ctx.lineWidth = 1;
+  ctx.fillStyle = "#88ff88";
+  ctx.font = `bold ${labelSize}px monospace`;
+  ctx.textAlign = "left";
+  ctx.textBaseline = "top";
+  ctx.fillText("回転数", col1X, PAD);
+  ctx.restore();
 
-  for (let i = 0; i < rows.length; i++) {
-    const row = rows[i]!;
-    const rowData = getRowData(row, stats, style);
-    const rowY = y + rowHeight * i;
-    const centerY = rowY + rowHeight / 2;
+  drawSegmentNumber(ctx, stats.currentRotations, col1X + colW - 4, counterY, digitW, digitH, "#00ff66", 4);
 
-    // Label
-    ctx.fillStyle = style.textColor;
-    ctx.font = style.font;
-    ctx.textAlign = "left";
-    ctx.textBaseline = "middle";
-    ctx.globalAlpha = 0.6;
-    ctx.fillText(rowData.label, PADDING.left, centerY);
+  // ─── Column 2: 大当り (total hit count, with kakuhen/normal breakdown) ───
+  const col2X = PAD + colW;
+  ctx.save();
+  ctx.fillStyle = "#ff4444";
+  ctx.font = `bold ${labelSize}px monospace`;
+  ctx.textAlign = "left";
+  ctx.textBaseline = "top";
+  ctx.fillText("大当り", col2X, PAD);
+  ctx.restore();
 
-    // Value
-    ctx.globalAlpha = 1;
-    ctx.fillStyle = rowData.color ?? style.textColor;
-    ctx.textAlign = "right";
-    ctx.fillText(rowData.value, width - PADDING.right, centerY);
+  drawSegmentNumber(ctx, stats.totalHits, col2X + colW - 4, counterY, digitW, digitH, "#ff4444", 4);
 
-    // Separator
-    if (i < rows.length - 1) {
-      ctx.beginPath();
-      ctx.moveTo(PADDING.left, rowY + rowHeight);
-      ctx.lineTo(PADDING.left + contentWidth, rowY + rowHeight);
-      ctx.stroke();
-    }
-  }
+  // ─── Column 3: 確率 (observed probability) ───
+  const col3X = PAD + colW * 2;
+  ctx.save();
+  ctx.fillStyle = "#ffaa00";
+  ctx.font = `bold ${labelSize}px monospace`;
+  ctx.textAlign = "left";
+  ctx.textBaseline = "top";
+  ctx.fillText("確率", col3X, PAD);
+  ctx.restore();
+
+  // Show as 1/N format
+  const probNum = stats.totalHits > 0 ? Math.round(stats.totalSpins / stats.totalHits) : 0;
+  drawSegmentNumber(ctx, probNum, col3X + colW - 4, counterY, digitW, digitH, "#ffaa00", 4);
+
+  // 1/ prefix
+  ctx.save();
+  ctx.fillStyle = "#ffaa00";
+  ctx.font = "bold 14px monospace";
+  ctx.textAlign = "right";
+  ctx.textBaseline = "top";
+  const prefixX = col3X + colW - 4 - 4 * digitW - 3 * (digitW * 0.25) - 6;
+  ctx.fillText("1/", prefixX, counterY + 8);
+  ctx.restore();
+
+  // ─── Row 2: Sub stats ───
+  const row2Y = counterY + digitH + 10;
+
+  ctx.save();
+  ctx.font = "11px monospace";
+  ctx.textBaseline = "top";
+
+  // Total spins
+  ctx.fillStyle = "rgba(255,255,255,0.5)";
+  ctx.textAlign = "left";
+  ctx.fillText("総回転", col1X, row2Y);
+  ctx.fillStyle = style.textColor;
+  ctx.textAlign = "right";
+  ctx.fillText(String(stats.totalSpins), col1X + colW - 4, row2Y);
+
+  // Kakuhen / Normal breakdown
+  ctx.fillStyle = "rgba(255,255,255,0.5)";
+  ctx.textAlign = "left";
+  ctx.fillText("確変/通常", col2X, row2Y);
+  ctx.fillStyle = style.textColor;
+  ctx.textAlign = "right";
+  ctx.fillText(`${stats.kakuhenCount}/${stats.normalCount}`, col2X + colW - 4, row2Y);
+
+  // Streak / Net balls
+  ctx.fillStyle = "rgba(255,255,255,0.5)";
+  ctx.textAlign = "left";
+  ctx.fillText("差玉", col3X, row2Y);
+  ctx.fillStyle = stats.netBalls >= 0 ? style.positiveColor : style.negativeColor;
+  ctx.textAlign = "right";
+  const netStr = stats.netBalls >= 0 ? `+${stats.netBalls}` : String(stats.netBalls);
+  ctx.fillText(netStr, col3X + colW - 4, row2Y);
 
   ctx.restore();
+
+  // ─── Row 3: Hit history blocks ───
+  const row3Y = row2Y + 22;
+
+  ctx.save();
+  ctx.fillStyle = "rgba(255,255,255,0.5)";
+  ctx.font = "11px monospace";
+  ctx.textAlign = "left";
+  ctx.textBaseline = "top";
+  ctx.fillText("履歴", col1X, row3Y);
+  ctx.restore();
+
+  const blocksX = col1X + 36;
+  const blocksW = width - PAD - blocksX;
+  const blockH = Math.min(28, height - row3Y - PAD - 14);
+
+  drawHitBlocks(ctx, stats, blocksX, row3Y, blocksW, blockH, style);
+
+  // ─── Row 4: Streak info ───
+  const row4Y = row3Y + blockH + 6;
+  if (row4Y + 14 <= height - PAD) {
+    ctx.save();
+    ctx.font = "11px monospace";
+    ctx.textBaseline = "top";
+
+    ctx.fillStyle = "rgba(255,255,255,0.5)";
+    ctx.textAlign = "left";
+    ctx.fillText("連チャン", col1X, row4Y);
+    ctx.fillStyle = style.textColor;
+    ctx.textAlign = "right";
+    ctx.fillText(`現${stats.currentStreak} / 最大${stats.maxStreak}`, col1X + colW - 4, row4Y);
+
+    ctx.fillStyle = "rgba(255,255,255,0.5)";
+    ctx.textAlign = "left";
+    ctx.fillText("最大ハマり", col2X, row4Y);
+    ctx.fillStyle = style.textColor;
+    ctx.textAlign = "right";
+    ctx.fillText(String(stats.maxDrought), col2X + colW - 4, row4Y);
+
+    ctx.fillStyle = "rgba(255,255,255,0.5)";
+    ctx.textAlign = "left";
+    ctx.fillText("スペック", col3X, row4Y);
+    ctx.fillStyle = style.textColor;
+    ctx.textAlign = "right";
+    ctx.fillText(stats.specProbability, col3X + colW - 4, row4Y);
+
+    ctx.restore();
+  }
 }

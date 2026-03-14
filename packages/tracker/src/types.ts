@@ -67,6 +67,11 @@ export interface SessionSnapshot {
 
 // ─── Session Stats ───
 
+export interface LastHitInfo {
+  readonly rotations: number;
+  readonly bonusTypeId: string;
+}
+
 export interface SessionStats {
   readonly totalSpins: number;
   readonly totalHits: number;
@@ -81,6 +86,7 @@ export interface SessionStats {
   readonly netBalls: number;
   readonly kakuhenCount: number;
   readonly normalCount: number;
+  readonly lastHitRotations: readonly LastHitInfo[];
 }
 
 // ─── Session Tracker ───
@@ -92,22 +98,10 @@ export interface SessionTracker {
   reset(): void;
 }
 
-// ─── Chart Style ───
+// ─── Chart Style (re-exported from @pachinko/ui) ───
 
-export interface ChartStyle {
-  readonly backgroundColor: string;
-  readonly textColor: string;
-  readonly axisColor: string;
-  readonly gridColor: string;
-  readonly lineColor: string;
-  readonly positiveColor: string;
-  readonly negativeColor: string;
-  readonly font: string;
-  readonly titleFont: string;
-  readonly labelFont: string;
-  readonly bonusColors: Readonly<Record<string, string>>;
-  readonly defaultBonusColor: string;
-}
+import type { ChartStyle } from "@pachinko/ui";
+export type { ChartStyle } from "@pachinko/ui";
 
 // ─── Chart Options ───
 

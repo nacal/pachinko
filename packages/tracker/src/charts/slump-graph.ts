@@ -1,5 +1,5 @@
-import type { BallDataPoint, SlumpGraphOptions, ChartStyle } from "../types.js";
-import { resolveChartStyle, drawBackground, drawGridLines, drawZeroLine, drawAxisLabel } from "../chart-utils.js";
+import type { BallDataPoint, SlumpGraphOptions } from "../types";
+import { resolveChartStyle, drawBackground, drawGridLines, drawZeroLine, drawAxisLabel, drawNoData, drawAxes } from "../chart-utils";
 
 const PADDING = { top: 20, right: 20, bottom: 40, left: 60 };
 
@@ -104,15 +104,7 @@ export function renderSlumpGraph(
   ctx.restore();
 
   // Axes border
-  ctx.save();
-  ctx.strokeStyle = style.axisColor;
-  ctx.lineWidth = 1;
-  ctx.beginPath();
-  ctx.moveTo(chartLeft, chartTop);
-  ctx.lineTo(chartLeft, chartTop + chartHeight);
-  ctx.lineTo(chartLeft + chartWidth, chartTop + chartHeight);
-  ctx.stroke();
-  ctx.restore();
+  drawAxes(ctx, chartLeft, chartTop, chartWidth, chartHeight, style);
 
   // X-axis labels
   const xSteps = 5;
@@ -131,17 +123,3 @@ export function renderSlumpGraph(
   }
 }
 
-function drawNoData(
-  ctx: CanvasRenderingContext2D,
-  width: number,
-  height: number,
-  style: ChartStyle,
-): void {
-  ctx.save();
-  ctx.fillStyle = style.textColor;
-  ctx.font = style.font;
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  ctx.fillText("No data", width / 2, height / 2);
-  ctx.restore();
-}
