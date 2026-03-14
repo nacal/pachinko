@@ -106,13 +106,21 @@ All chart functions follow the signature `(ctx, width, height, data, options?)`.
 
 Line chart showing net ball count over cumulative spins. Positive area filled green, negative area filled red. Zero line highlighted.
 
+| Option | Default | Description |
+|--------|---------|-------------|
+| `maxSpins` | — | Fixed x-axis max (axis spans 0..maxSpins) |
+| `yRange` | — | Fixed y-axis range (axis spans at least -yRange..+yRange) |
+| `showGrid` | `true` | Show grid lines |
+| `showZeroLine` | `true` | Show zero line |
+
 #### `renderHitHistory(ctx, width, height, hits, options?)`
 
 Bar chart showing rotation count between hits. Bars are color-coded by bonus type. Labels show rotation count above each bar.
 
 | Option | Default | Description |
 |--------|---------|-------------|
-| `maxBars` | `20` | Max bars to display (most recent N) |
+| `maxBars` | `20` | Max bars to display (most recent N); also sets fixed x-axis width |
+| `yMax` | — | Fixed y-axis max (axis spans at least 0..yMax) |
 | `showLabels` | `true` | Show rotation count labels above bars |
 
 #### `renderStatsPanel(ctx, width, height, stats, options?)`

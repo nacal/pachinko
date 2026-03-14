@@ -106,13 +106,21 @@ interface TrackerConfig {
 
 累計回転数に対する差玉の推移を折れ線で描画。プラス域は緑、マイナス域は赤で塗り分け。ゼロラインを強調表示。
 
+| オプション | デフォルト | 説明 |
+|-----------|-----------|------|
+| `maxSpins` | — | 横軸の固定最大値（0..maxSpins で表示） |
+| `yRange` | — | 縦軸の固定範囲（-yRange..+yRange 以上で表示） |
+| `showGrid` | `true` | グリッド線を表示 |
+| `showZeroLine` | `true` | ゼロラインを表示 |
+
 #### `renderHitHistory(ctx, width, height, hits, options?)`
 
 大当たり間のハマり回転数を棒グラフで描画。ボーナスタイプ別に色分け。各棒の上にハマり回転数を表示。
 
 | オプション | デフォルト | 説明 |
 |-----------|-----------|------|
-| `maxBars` | `20` | 表示する最大棒数（直近N件） |
+| `maxBars` | `20` | 表示する最大棒数（直近N件）、横軸の固定幅も兼ねる |
+| `yMax` | — | 縦軸の固定最大値（0..yMax 以上で表示） |
 | `showLabels` | `true` | 棒の上にハマり回転数ラベルを表示 |
 
 #### `renderStatsPanel(ctx, width, height, stats, options?)`
