@@ -9,7 +9,8 @@ pachinko/
 ├── packages/
 │   ├── lottery/     # @pachinko/lottery — 抽選エンジン
 │   ├── rendering/   # @pachinko/rendering — リールアニメーション描画
-│   └── effects/     # @pachinko/effects — 演出エフェクトエンジン
+│   ├── effects/     # @pachinko/effects — 演出エフェクトエンジン
+│   └── tracker/     # @pachinko/tracker — データトラッキング＆可視化
 ├── site/            # ドキュメント・デモサイト (Vite)
 ├── package.json     # ルート（pnpm workspaces）
 ├── README.md        # 英語
@@ -83,12 +84,29 @@ packages/effects/src/
 └── adapter.ts         # @pachinko/rendering連携
 ```
 
+## @pachinko/tracker の構造
+
+```
+packages/tracker/src/
+├── index.ts           # barrel export
+├── types.ts           # 全型定義
+├── tracker.ts         # セッショントラッカー (createSessionTracker)
+├── stats.ts           # 純粋な統計計算関数
+├── utils.ts           # formatProbability, clamp等
+├── chart-utils.ts     # Canvas描画ヘルパー (軸, グリッド, ラベル)
+└── charts/
+    ├── slump-graph.ts # スランプグラフ（折れ線）
+    ├── hit-history.ts # 大当たり履歴（棒グラフ）
+    └── stats-panel.ts # データランプ風統計パネル
+```
+
 ## コミットメッセージ
 
 Conventional Commits 形式:
 - `feat(lottery):` — lottery パッケージの新機能
 - `feat(rendering):` — rendering パッケージの新機能
 - `feat(effects):` — effects パッケージの新機能
+- `feat(tracker):` — tracker パッケージの新機能
 - `fix(lottery):` — バグ修正
 - `docs:` — ドキュメント
 - `chore:` — 設定・メンテナンス
