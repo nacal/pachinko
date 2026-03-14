@@ -180,7 +180,7 @@ const result = draw(machine, rng, state);
     <!-- ─── @pachinko/effects ─── -->
     <section>
       <h2>@pachinko/effects</h2>
-      <p style="color: var(--text-muted);">Declarative presentation effects engine — flash, shake, text overlays, and composable effect pipelines.</p>
+      <p style="color: var(--text-muted);">Declarative presentation effects engine — flash, shake, text overlays, background layers, and composable effect pipelines.</p>
 
       <div class="api-section">
         <h3>Engine</h3>
@@ -287,7 +287,7 @@ const engine = createEffectsEngine(overlayCanvas, {
 
       <div class="api-section">
         <h3>Effect Phases</h3>
-        <pre><code>pre-spin → spin-start → pre-reach → reach → post-reach → result</code></pre>
+        <pre><code>pre-spin → spin-start → pre-reach → reach → reach-presentation → post-reach → result</code></pre>
         <p class="api-desc">Mapped automatically from <code>@pachinko/rendering</code> ReelPhase via the adapter.</p>
       </div>
 
@@ -296,6 +296,85 @@ const engine = createEffectsEngine(overlayCanvas, {
 
         <h3><code>connectRenderer(renderer, engine): disconnect</code></h3>
         <p class="api-desc">Connect a <code>ReelRenderer</code> to the effects engine. Automatically maps phase changes, reel stops, and manages the animation loop. Returns a disconnect function.</p>
+
+        <h3><code>connectBackgroundEngine(renderer, bgEngine): disconnect</code></h3>
+        <p class="api-desc">Connect a <code>ReelRenderer</code> to the background engine. Forwards phase changes and reel stops.</p>
+      </div>
+
+      <div class="api-section">
+        <h3>Background Layer</h3>
+
+        <h3><code>createBackgroundEngine(canvas, config): BackgroundEngine</code></h3>
+        <p class="api-desc">Create a background engine that renders behind the reel canvas. Supports mode-based and phase-based background switching with smooth transitions.</p>
+        <pre><code>import { createBackgroundEngine, connectBackgroundEngine, gradientBg, particleBg } from "@pachinko/effects";
+
+const bgEngine = createBackgroundEngine(bgCanvas, {
+  modeBackgrounds: {
+    normal: gradientBg({ colors: ["#0a0a1a", "#1a1a3e"], speed: 0.3 }),
+    kakuhen: gradientBg({ colors: ["#3a0000", "#660022"], speed: 1 }),
+    jitan: particleBg({ count: 50, color: "#4488ff" }),
+  },
+  rules: [{
+    id: "reach-bg",
+    condition: { phase: "reach", isReach: true },
+    source: gradientBg({ colors: ["#330000", "#990000"], speed: 2 }),
+    transition: { type: "crossfade", duration: 300 },
+  }],
+  defaultTransition: { type: "fade", duration: 500 },
+});
+connectBackgroundEngine(renderer, bgEngine);</code></pre>
+
+        <table class="type-table">
+          <thead><tr><th>Method</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>start(drawResult)</code></td><td>Set draw result and reset phase overrides</td></tr>
+            <tr><td><code>setMode(mode)</code></td><td>Switch mode-based background with transition</td></tr>
+            <tr><td><code>setPhase(phase)</code></td><td>Evaluate phase-based rules for temporary overrides</td></tr>
+            <tr><td><code>setReelStop(position, symbol)</code></td><td>Update reel stop for condition matching</td></tr>
+            <tr><td><code>tick(now)</code></td><td>Render frame</td></tr>
+            <tr><td><code>resize(w, h)</code></td><td>Update canvas dimensions</td></tr>
+            <tr><td><code>destroy()</code></td><td>Clean up (pause videos, cancel frames)</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="api-section">
+        <h3>Background Sources</h3>
+        <table class="type-table">
+          <thead><tr><th>Factory</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>colorBg(color)</code></td><td>Solid color fill</td></tr>
+            <tr><td><code>imageBg(image)</code></td><td>ImageBitmap with cover fit</td></tr>
+            <tr><td><code>videoBg(video)</code></td><td>HTMLVideoElement (auto play/pause)</td></tr>
+            <tr><td><code>canvasBg(renderFn)</code></td><td>Custom Canvas 2D draw function</td></tr>
+            <tr><td><code>gradientBg(options?)</code></td><td>Animated rotating gradient</td></tr>
+            <tr><td><code>particleBg(options?)</code></td><td>Animated particle field</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="api-section">
+        <h3>Reach Presentation</h3>
+        <p class="api-desc">Custom effect sequences during reach-presentation phase with optional user confirmation.</p>
+        <table class="type-table">
+          <thead><tr><th>Property</th><th>Type</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>id</code></td><td><code>string</code></td><td>Unique presentation ID</td></tr>
+            <tr><td><code>condition</code></td><td><code>EffectCondition</code></td><td>When to activate</td></tr>
+            <tr><td><code>effects</code></td><td><code>EffectOrComposite[]</code></td><td>Effect sequence to play</td></tr>
+            <tr><td><code>requireConfirm?</code></td><td><code>boolean</code></td><td>Wait for user confirmation (default: true)</td></tr>
+            <tr><td><code>confirmReadyAt?</code></td><td><code>number</code></td><td>ms until confirm becomes available (default: 0)</td></tr>
+          </tbody>
+        </table>
+        <table class="type-table">
+          <thead><tr><th>Engine Method</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>onReachPresentationEnd(cb)</code></td><td>Callback when presentation resolves</td></tr>
+            <tr><td><code>onConfirmReady(cb)</code></td><td>Callback when confirm button should appear</td></tr>
+            <tr><td><code>isInReachPresentation()</code></td><td>Check if currently in a reach presentation</td></tr>
+            <tr><td><code>confirmReachPresentation()</code></td><td>Signal user confirmation (button press)</td></tr>
+          </tbody>
+        </table>
       </div>
 
       <div class="api-section">
@@ -303,12 +382,16 @@ const engine = createEffectsEngine(overlayCanvas, {
         <table class="type-table">
           <thead><tr><th>Type</th><th>Description</th></tr></thead>
           <tbody>
-            <tr><td><code>EffectPhase</code></td><td><code>"pre-spin" | "spin-start" | "pre-reach" | "reach" | "post-reach" | "result"</code></td></tr>
+            <tr><td><code>EffectPhase</code></td><td><code>"pre-spin" | "spin-start" | "pre-reach" | "reach" | "reach-presentation" | "post-reach" | "result"</code></td></tr>
             <tr><td><code>EffectRule</code></td><td><code>{ id, condition, effects, priority?, exclusive? }</code></td></tr>
+            <tr><td><code>ReachPresentation</code></td><td><code>{ id, condition, effects, priority?, requireConfirm?, confirmReadyAt? }</code></td></tr>
             <tr><td><code>EffectCondition</code></td><td>Condition object for rule matching</td></tr>
             <tr><td><code>EffectPrimitive</code></td><td>Union of all primitive effect types</td></tr>
             <tr><td><code>EffectOrComposite</code></td><td>Primitive or composite (sequence/parallel/stagger)</td></tr>
             <tr><td><code>EffectsEngine</code></td><td>Main engine interface</td></tr>
+            <tr><td><code>BackgroundEngine</code></td><td>Background layer engine interface</td></tr>
+            <tr><td><code>BackgroundSource</code></td><td>Background source (color, image, video, canvas)</td></tr>
+            <tr><td><code>BackgroundRule</code></td><td><code>{ id, condition, source, transition?, priority? }</code></td></tr>
             <tr><td><code>ShakeOffset</code></td><td><code>{ x: number, y: number }</code></td></tr>
           </tbody>
         </table>
