@@ -272,6 +272,7 @@ const reachPresentations: ReachPresentation[] = [
       ),
     ],
     requireConfirm: true,
+    confirmReadyAt: 2500, // After リーチ!(1500) + flash/shake(1000)
   },
   {
     id: "kakuhen-super-reach",
@@ -301,6 +302,7 @@ const reachPresentations: ReachPresentation[] = [
     ],
     priority: 10,
     requireConfirm: true,
+    confirmReadyAt: 5500, // After flash(2000) + 超激アツ!(2000) + shake/flash(1500)
   },
 ];
 
@@ -336,30 +338,28 @@ async function init(): Promise<void> {
   connectRenderer(renderer, effectsEngine);
 
   // Show/hide confirm button based on reach presentation state
-  function updateConfirmButton(): void {
-    if (effectsEngine.isInReachPresentation()) {
-      btnConfirm.style.display = "";
-      btnSpin.style.display = "none";
-    } else {
-      btnConfirm.style.display = "none";
-      btnSpin.style.display = "";
-    }
+  function showConfirmButton(): void {
+    btnConfirm.style.display = "";
+    btnSpin.style.display = "none";
   }
 
-  renderer.onPhaseChange((phase) => {
-    if (phase === "reach-presentation") {
-      updateConfirmButton();
-    }
+  function hideConfirmButton(): void {
+    btnConfirm.style.display = "none";
+    btnSpin.style.display = "";
+  }
+
+  effectsEngine.onConfirmReady(() => {
+    showConfirmButton();
   });
 
   effectsEngine.onReachPresentationEnd(() => {
-    updateConfirmButton();
+    hideConfirmButton();
   });
 
   renderer.onComplete(() => {
     spinning = false;
     btnSpin.disabled = false;
-    updateConfirmButton();
+    hideConfirmButton();
   });
 
   function doSpin(): void {

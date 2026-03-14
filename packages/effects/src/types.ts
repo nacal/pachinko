@@ -189,6 +189,8 @@ export interface ReachPresentation {
   readonly priority?: number;
   /** If true, user must confirm (button press) after presentation completes. Default: true */
   readonly requireConfirm?: boolean;
+  /** Milliseconds from presentation start until confirm becomes available. Default: 0 */
+  readonly confirmReadyAt?: number;
 }
 
 // ─── Timeline ───
@@ -231,6 +233,8 @@ export interface EffectsEngine {
   isInReachPresentation(): boolean;
   /** Signal user confirmation during reach presentation (e.g., button press) */
   confirmReachPresentation(): void;
+  /** Register callback fired when confirm becomes available during reach presentation */
+  onConfirmReady(callback: () => void): void;
   skipToResult(): void;
   resize(width: number, height: number): void;
   destroy(): void;

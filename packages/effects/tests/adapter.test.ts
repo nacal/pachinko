@@ -61,6 +61,7 @@ function createMockEngine(): EffectsEngine & {
     onReachPresentationEnd: vi.fn(),
     isInReachPresentation: vi.fn(() => false),
     confirmReachPresentation: vi.fn(),
+    onConfirmReady: vi.fn(),
     skipToResult: vi.fn(),
     resize: vi.fn(),
     destroy: vi.fn(),

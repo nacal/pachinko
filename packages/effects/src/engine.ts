@@ -44,7 +44,10 @@ export function createEffectsEngine(
   let presentationComplete = false;
   let userConfirmed = false;
   let currentRequireConfirm = true;
+  let currentConfirmReadyAt = 0;
+  let confirmReadyFired = false;
   const reachPresentationEndCallbacks: Array<() => void> = [];
+  const confirmReadyCallbacks: Array<() => void> = [];
 
   function getContext(): EffectContext {
     return {
@@ -94,10 +97,18 @@ export function createEffectsEngine(
     // Find the original ReachPresentation to get requireConfirm
     const matchedPresentation = presentations.find((p) => p.id === matched[0]!.id);
     currentRequireConfirm = matchedPresentation?.requireConfirm !== false;
+    currentConfirmReadyAt = matchedPresentation?.confirmReadyAt ?? 0;
+    confirmReadyFired = false;
 
     reachPresentationActive = true;
     presentationComplete = false;
     userConfirmed = false;
+
+    // Fire immediately if confirmReadyAt is 0
+    if (currentConfirmReadyAt <= 0) {
+      confirmReadyFired = true;
+      for (const cb of confirmReadyCallbacks) cb();
+    }
 
     // Build timeline from matched presentation effects (use first matched only)
     const allEffects = matched[0]!.effects;
@@ -139,6 +150,7 @@ export function createEffectsEngine(
     reachPresentationActive = false;
     presentationComplete = false;
     userConfirmed = false;
+    confirmReadyFired = false;
   }
 
   function setPhase(phase: EffectPhase): void {
@@ -174,6 +186,12 @@ export function createEffectsEngine(
       return;
     }
 
+    // Fire confirmReady callback when elapsed reaches confirmReadyAt
+    if (currentPhase === "reach-presentation" && !confirmReadyFired && elapsed >= currentConfirmReadyAt) {
+      confirmReadyFired = true;
+      for (const cb of confirmReadyCallbacks) cb();
+    }
+
     const active = getActiveEntries(timeline, elapsed);
 
     for (const { entry, progress } of active) {
@@ -199,6 +217,10 @@ export function createEffectsEngine(
 
   function isInReachPresentation(): boolean {
     return reachPresentationActive;
+  }
+
+  function onConfirmReady(callback: () => void): void {
+    confirmReadyCallbacks.push(callback);
   }
 
   function confirmReachPresentation(): void {
@@ -235,6 +257,7 @@ export function createEffectsEngine(
     reachPresentationActive = false;
     completeCallbacks.length = 0;
     reachPresentationEndCallbacks.length = 0;
+    confirmReadyCallbacks.length = 0;
   }
 
   return {
@@ -247,6 +270,7 @@ export function createEffectsEngine(
     onReachPresentationEnd,
     isInReachPresentation,
     confirmReachPresentation,
+    onConfirmReady,
     skipToResult,
     resize,
     destroy,
