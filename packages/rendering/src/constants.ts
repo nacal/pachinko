@@ -7,6 +7,8 @@ export const DEFAULT_TIMING: TimingConfig = {
   reachSlowdownDuration: 2000,
   stopBounceDuration: 150,
   enableReachPresentation: false,
+  pseudoStopDuration: 400,
+  pseudoRestartDuration: 600,
 } as const;
 
 export const DEFAULT_STYLE: StyleConfig = {

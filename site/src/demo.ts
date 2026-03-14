@@ -4,8 +4,10 @@ import {
   createRng,
   draw,
   createState,
+  nextState,
+  drawReels,
 } from "@pachinko/lottery";
-import type { GameState } from "@pachinko/lottery";
+import type { GameState, DrawResult } from "@pachinko/lottery";
 import { createInlineReelRenderer, DEFAULT_TIMING } from "@pachinko/rendering";
 import type { DrawResultInput, SymbolSpec } from "@pachinko/rendering";
 import {
@@ -140,6 +142,8 @@ const reserveCanvas = document.getElementById("reserve-canvas") as HTMLCanvasEle
 const btnSpin = document.getElementById("btn-spin") as HTMLButtonElement;
 const btnConfirm = document.getElementById("btn-confirm") as HTMLButtonElement;
 const btnSkip = document.getElementById("btn-skip") as HTMLButtonElement;
+const chkAuto = document.getElementById("chk-auto") as HTMLInputElement;
+const selSpeed = document.getElementById("sel-speed") as HTMLSelectElement;
 const modeBanner = document.getElementById("mode-banner")!;
 const modeLabel = document.getElementById("mode-label")!;
 const modeDetail = document.getElementById("mode-detail")!;
@@ -254,6 +258,23 @@ const effectRules: EffectRule[] = [
           fadeOut: 300,
         }),
       ),
+    ],
+  },
+  {
+    id: "pseudo-stop-flash",
+    condition: { phase: "pseudo-stop" },
+    effects: [
+      parallel(
+        flash({ color: "#ffffff", opacity: 0.5, count: 1, timing: { delay: 0, duration: 300 } }),
+        shake({ intensity: 8, frequency: 30, timing: { delay: 0, duration: 350 } }),
+      ),
+    ],
+  },
+  {
+    id: "pseudo-restart-flash",
+    condition: { phase: "pseudo-restart" },
+    effects: [
+      flash({ color: "#4488ff", opacity: 0.3, count: 2, timing: { delay: 0, duration: 500 } }),
     ],
   },
   {
@@ -416,6 +437,12 @@ const scenarioConfig: ScenarioConfig = {
           { color: "white", weight: 10 },
         ],
       },
+      pseudoCounts: [
+        { count: 0, weight: 40 },
+        { count: 1, weight: 30 },
+        { count: 2, weight: 20 },
+        { count: 3, weight: 10 },
+      ],
       reachPresentations: [
         {
           presentationId: "kakuhen-super-reach",
@@ -486,6 +513,11 @@ const scenarioConfig: ScenarioConfig = {
           { color: "white", weight: 50 },
         ],
       },
+      pseudoCounts: [
+        { count: 0, weight: 80 },
+        { count: 1, weight: 15 },
+        { count: 2, weight: 5 },
+      ],
       reachPresentations: [
         {
           presentationId: "normal-reach",
@@ -726,7 +758,11 @@ async function init(): Promise<void> {
   }
 
   effectsEngine.onConfirmReady(() => {
-    showConfirmButton();
+    if (chkAuto.checked) {
+      setTimeout(() => effectsEngine.confirmReachPresentation(), 300);
+    } else {
+      showConfirmButton();
+    }
   });
 
   effectsEngine.onReachPresentationEnd(() => {
@@ -786,10 +822,12 @@ async function init(): Promise<void> {
       mode: result.previousState.mode,
     });
 
+    const pseudoCount = scenario?.pseudoCount ?? 0;
     const renderInput: DrawResultInput = {
       outcome: result.outcome,
       reels: result.reels,
       isReach: result.isReach,
+      pseudoCount,
     };
 
     const effectInput = {
@@ -881,14 +919,6 @@ async function init(): Promise<void> {
     },
   });
 
-  renderer.onComplete(() => {
-    spinning = false;
-    btnSpin.disabled = false;
-    hideConfirmButton();
-    reserveDisplay.setActive(null);
-    orchestrator.notifySpinComplete();
-  });
-
   function doSpin(): void {
     if (spinning) {
       // Already spinning — add to reserve queue
@@ -916,6 +946,197 @@ async function init(): Promise<void> {
     doSpinWithResult(result, scenario, directEntry);
   }
 
+  // ─── Forced trigger: build a DrawResult with specific outcome ───
+
+  function buildForcedResult(
+    trigger: string,
+  ): { result: DrawResult; pseudoCountOverride?: number } {
+    // Use the real draw pipeline, then override outcome/reels as needed
+    const baseResult = draw(machine, gameState, rng);
+
+    switch (trigger) {
+      case "oatari": {
+        // Force oatari with reach
+        const reels = drawReels(machine.symbols, "oatari", rng);
+        const bonusEntries = machine.bonusDistribution[gameState.mode];
+        const bonusType = bonusEntries && bonusEntries.length > 0
+          ? bonusEntries[Math.floor(rng.next() * bonusEntries.length)]!.value
+          : baseResult.bonusType;
+        const newState = nextState(gameState, "oatari", bonusType);
+        return {
+          result: {
+            ...baseResult,
+            outcome: "oatari",
+            reels,
+            isReach: true,
+            bonusType,
+            nextState: newState,
+          },
+        };
+      }
+      case "reach-hazure": {
+        const reels = drawReels(machine.symbols, "hazure", rng, { reach: true });
+        const newState = nextState(gameState, "hazure", null);
+        return {
+          result: {
+            ...baseResult,
+            outcome: "hazure",
+            reels,
+            isReach: true,
+            bonusType: null,
+            nextState: newState,
+          },
+        };
+      }
+      case "hazure": {
+        const reels = drawReels(machine.symbols, "hazure", rng, { reach: false });
+        const newState = nextState(gameState, "hazure", null);
+        return {
+          result: {
+            ...baseResult,
+            outcome: "hazure",
+            reels,
+            isReach: false,
+            bonusType: null,
+            nextState: newState,
+          },
+        };
+      }
+      case "pseudo1":
+      case "pseudo2":
+      case "pseudo3": {
+        const pseudoCount = trigger === "pseudo1" ? 1 : trigger === "pseudo2" ? 2 : 3;
+        // Pseudo-consecutive with oatari (most dramatic)
+        const reels = drawReels(machine.symbols, "oatari", rng);
+        const bonusEntries = machine.bonusDistribution[gameState.mode];
+        const bonusType = bonusEntries && bonusEntries.length > 0
+          ? bonusEntries[Math.floor(rng.next() * bonusEntries.length)]!.value
+          : baseResult.bonusType;
+        const newState = nextState(gameState, "oatari", bonusType);
+        return {
+          result: {
+            ...baseResult,
+            outcome: "oatari",
+            reels,
+            isReach: true,
+            bonusType,
+            nextState: newState,
+          },
+          pseudoCountOverride: pseudoCount,
+        };
+      }
+      case "kakuhen": {
+        // Force oatari with kakuhen bonus
+        const reels = drawReels(machine.symbols, "oatari", rng);
+        const kakuhenBonus = machine.bonusDistribution[gameState.mode]?.find(
+          (e) => e.value.nextMode === "kakuhen",
+        );
+        const bonusType = kakuhenBonus?.value ?? baseResult.bonusType;
+        const newState = nextState(gameState, "oatari", bonusType);
+        return {
+          result: {
+            ...baseResult,
+            outcome: "oatari",
+            reels,
+            isReach: true,
+            bonusType,
+            nextState: newState,
+          },
+        };
+      }
+      default:
+        return { result: baseResult };
+    }
+  }
+
+  function doTriggeredSpin(trigger: string): void {
+    const { result, pseudoCountOverride } = buildForcedResult(trigger);
+    const input = {
+      outcome: result.outcome,
+      reels: result.reels,
+      isReach: result.isReach,
+      bonusType: result.bonusType,
+      gameMode: result.previousState.mode,
+      consecutiveBonuses: result.previousState.consecutiveBonuses,
+    };
+    const { scenario } = resolvePreReadingScenario(
+      preReadingConfig, input,
+      { queuePosition: 0, queueSize: 1, existingEntries: [] },
+      scenarioRng,
+    );
+    // Override pseudoCount if trigger specifies it
+    const finalScenario = pseudoCountOverride !== undefined
+      ? { ...scenario, pseudoCount: pseudoCountOverride }
+      : scenario;
+    const directEntry: ReserveEntry = {
+      id: Date.now(),
+      drawResult: result,
+      color: finalScenario.color,
+      scenario: finalScenario,
+    };
+    doSpinWithResult(result, finalScenario, directEntry);
+  }
+
+  // ─── Auto mode ───
+
+  let autoTimerId: ReturnType<typeof setTimeout> | null = null;
+
+  function getAutoDelay(): number {
+    return Number(selSpeed.value) || 500;
+  }
+
+  function fillReserve(): void {
+    while (orchestrator.queue().length < 4) {
+      const added = orchestrator.request(gameState);
+      if (!added) break;
+    }
+  }
+
+  function scheduleAutoSpin(): void {
+    if (!chkAuto.checked) return;
+    fillReserve();
+    autoTimerId = setTimeout(() => {
+      autoTimerId = null;
+      if (!chkAuto.checked) return;
+      fillReserve();
+      doSpin();
+    }, getAutoDelay());
+  }
+
+  function stopAuto(): void {
+    if (autoTimerId !== null) {
+      clearTimeout(autoTimerId);
+      autoTimerId = null;
+    }
+  }
+
+  // When a spin completes, schedule the next auto spin
+  renderer.onComplete(() => {
+    spinning = false;
+    btnSpin.disabled = false;
+    hideConfirmButton();
+    reserveDisplay.setActive(null);
+    orchestrator.notifySpinComplete();
+    // Auto: schedule next spin
+    if (chkAuto.checked) {
+      // In auto mode, auto-confirm reach presentations
+      scheduleAutoSpin();
+    }
+  });
+
+  chkAuto.addEventListener("change", () => {
+    if (chkAuto.checked) {
+      fillReserve();
+      if (!spinning) {
+        doSpin();
+      }
+    } else {
+      stopAuto();
+    }
+  });
+
+  // ─── Event listeners ───
+
   btnSpin.addEventListener("click", doSpin);
 
   btnConfirm.addEventListener("click", () => {
@@ -931,6 +1152,15 @@ async function init(): Promise<void> {
       effectsEngine.skipToResult();
     }
   });
+
+  // Trigger buttons
+  for (const btn of document.querySelectorAll<HTMLButtonElement>("[data-trigger]")) {
+    btn.addEventListener("click", () => {
+      const trigger = btn.dataset.trigger!;
+      if (spinning) return;
+      doTriggeredSpin(trigger);
+    });
+  }
 
   document.addEventListener("keydown", (e) => {
     if (e.code === "Space") {

@@ -10,6 +10,8 @@ const REEL_PHASE_TO_EFFECT_PHASE: Partial<Record<ReelPhase, EffectPhase>> = {
   spinning: "spin-start",
   "stopping-left": "pre-reach",
   "stopping-right": "reach",
+  "pseudo-stop": "pseudo-stop",
+  "pseudo-restart": "pseudo-restart",
   "reach-presentation": "reach-presentation",
   "stopping-center": "post-reach",
   result: "result",

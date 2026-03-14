@@ -350,6 +350,68 @@ section h2 {
   justify-content: center;
 }
 
+.demo-auto-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+  user-select: none;
+  color: var(--text-muted);
+}
+
+.demo-auto-toggle input:checked + span,
+.demo-auto-toggle:has(input:checked) {
+  color: var(--accent);
+}
+
+.demo-select {
+  background: var(--bg-card);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.4rem 0.6rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.demo-trigger-panel {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  width: 100%;
+  max-width: 480px;
+}
+
+.demo-trigger-panel h3 {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin-bottom: 0.75rem;
+}
+
+.demo-trigger-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.btn-trigger {
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  padding: 0.4rem 0.8rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-trigger:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
 .demo-info {
   background: var(--bg-card);
   border: 1px solid var(--border);

@@ -20,6 +20,8 @@ export interface DrawResultInput {
   readonly outcome: DrawOutcome;
   readonly reels: ReelResult;
   readonly isReach: boolean;
+  /** Number of pseudo-consecutive cycles (擬似連). 0 or undefined = no pseudo. */
+  readonly pseudoCount?: number;
 }
 
 // ─── Reel animation state machine ───
@@ -29,6 +31,8 @@ export type ReelPhase =
   | "spinning"
   | "stopping-left"
   | "stopping-right"
+  | "pseudo-stop"
+  | "pseudo-restart"
   | "reach-presentation"
   | "stopping-center"
   | "result";
@@ -41,6 +45,12 @@ export interface ReelAnimationState {
   readonly phaseStartTime: number;
   readonly result: DrawResultInput | null;
   readonly isReach: boolean;
+  /** Total pseudo-consecutive cycles requested */
+  readonly pseudoCount: number;
+  /** Pseudo-consecutive cycles remaining */
+  readonly pseudoRemaining: number;
+  /** Fake hazure reels for each pseudo-consecutive cycle (index 0 = first cycle) */
+  readonly pseudoReels: readonly ReelResult[];
 }
 
 // ─── Reel strip ───
@@ -69,6 +79,10 @@ export interface TimingConfig {
   readonly stopBounceDuration: number;
   /** Enable reach-presentation phase that pauses before center reel stops. Default: false */
   readonly enableReachPresentation: boolean;
+  /** Duration of pseudo-stop freeze before reels restart (ms). Default: 400 */
+  readonly pseudoStopDuration: number;
+  /** Duration of pseudo-restart spin-up (ms). Default: 600 */
+  readonly pseudoRestartDuration: number;
 }
 
 // ─── Style configuration ───

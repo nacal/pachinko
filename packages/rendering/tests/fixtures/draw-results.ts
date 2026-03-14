@@ -49,3 +49,17 @@ export const reachHazureResult: DrawResultInput = {
   reels: reachReels,
   isReach: true,
 };
+
+export const pseudoResult: DrawResultInput = {
+  outcome: "oatari",
+  reels: oatariReels,
+  isReach: true,
+  pseudoCount: 2,
+};
+
+export const pseudoSingleResult: DrawResultInput = {
+  outcome: "hazure",
+  reels: hazureReels,
+  isReach: false,
+  pseudoCount: 1,
+};

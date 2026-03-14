@@ -40,6 +40,7 @@ export function createEffectsEngine(
   let activeAmbientStates: PhaseState[] = [];
   let currentShakeOffset: ShakeOffset = { x: 0, y: 0 };
   let destroyed = false;
+  let pseudoRestartCount = 0;
 
   const completeCallbacks: Array<() => void> = [];
 
@@ -205,6 +206,11 @@ export function createEffectsEngine(
     if (!drawResult) return;
     currentPhase = phase;
 
+    // Track pseudo-restart count for ×N display
+    if (phase === "pseudo-restart") {
+      pseudoRestartCount++;
+    }
+
     // Handle reach presentation phase specially
     if (phase === "reach-presentation") {
       activateReachPresentation(now);
@@ -219,25 +225,56 @@ export function createEffectsEngine(
       const entry = currentScenario.phaseEffects.find((e) => e.phase === phase);
       if (!entry || entry.effects.length === 0) {
         activePhaseState = null;
-        return;
+      } else {
+        const timeline = buildTimeline(entry.effects);
+        activePhaseState = { phase, timeline, startTime: now };
       }
-      const timeline = buildTimeline(entry.effects);
-      activePhaseState = { phase, timeline, startTime: now };
-      return;
+    } else {
+      // ─── Dynamic mode: evaluate rules ───
+      const context = getContext();
+      const matchedRules = evaluateRules(config.rules, context);
+
+      if (matchedRules.length === 0) {
+        activePhaseState = null;
+      } else {
+        const allEffects = matchedRules.flatMap((r) => r.effects);
+        const timeline = buildTimeline(allEffects);
+        activePhaseState = { phase, timeline, startTime: now };
+      }
     }
 
-    // ─── Dynamic mode: evaluate rules ───
-    const context = getContext();
-    const matchedRules = evaluateRules(config.rules, context);
+    // Auto-inject ×N text overlay on pseudo-restart
+    if (phase === "pseudo-restart" && pseudoRestartCount > 0) {
+      const label = `×${pseudoRestartCount + 1}`;
+      const pseudoOverlay: EffectPrimitive = {
+        type: "custom",
+        timing: { delay: 0, duration: 500 },
+        render: (ctx2d, progress, w, h) => {
+          ctx2d.save();
+          // Scale-in and fade-out animation
+          const scalePhase = Math.min(progress / 0.3, 1);
+          const fadePhase = progress > 0.6 ? (progress - 0.6) / 0.4 : 0;
+          const scale = 0.5 + 0.5 * scalePhase;
+          const alpha = 1 - fadePhase;
 
-    if (matchedRules.length === 0) {
-      activePhaseState = null;
-      return;
+          ctx2d.globalAlpha = alpha;
+          ctx2d.font = `bold ${Math.round(72 * scale)}px sans-serif`;
+          ctx2d.textAlign = "center";
+          ctx2d.textBaseline = "middle";
+
+          // Stroke for readability
+          ctx2d.strokeStyle = "rgba(0, 0, 0, 0.8)";
+          ctx2d.lineWidth = 4;
+          ctx2d.strokeText(label, w / 2, h / 2);
+
+          ctx2d.fillStyle = "#ffd700";
+          ctx2d.fillText(label, w / 2, h / 2);
+          ctx2d.restore();
+        },
+      };
+      const overlayTimeline = buildTimeline([pseudoOverlay]);
+      activeAmbientStates.push({ phase, timeline: overlayTimeline, startTime: now });
     }
-
-    const allEffects = matchedRules.flatMap((r) => r.effects);
-    const timeline = buildTimeline(allEffects);
-    activePhaseState = { phase, timeline, startTime: now };
   }
 
   function start(result: DrawResultInput, scenario?: PresentationScenario): void {
@@ -254,6 +291,7 @@ export function createEffectsEngine(
     presentationComplete = false;
     userConfirmed = false;
     confirmReadyFired = false;
+    pseudoRestartCount = 0;
   }
 
   function setPhase(phase: EffectPhase): void {

@@ -183,10 +183,20 @@ export function resolveScenario(
     ? resolvePhaseEffects(matchedRule.phaseEffects, rng)
     : [];
 
+  // Resolve pseudo-consecutive count
+  let pseudoCount: number | undefined;
+  if (matchedRule?.pseudoCounts && matchedRule.pseudoCounts.length > 0) {
+    const selected = weightedSelectByRng(matchedRule.pseudoCounts as readonly { count: number; weight: number }[], rng);
+    if (selected && selected.count > 0) {
+      pseudoCount = selected.count;
+    }
+  }
+
   return {
     color,
     phaseEffects,
     reachPresentation,
+    ...(pseudoCount !== undefined ? { pseudoCount } : {}),
   };
 }
 

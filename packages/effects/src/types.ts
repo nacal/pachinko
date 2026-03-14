@@ -21,6 +21,8 @@ export type ReelPhase =
   | "spinning"
   | "stopping-left"
   | "stopping-right"
+  | "pseudo-stop"
+  | "pseudo-restart"
   | "reach-presentation"
   | "stopping-center"
   | "result";
@@ -32,6 +34,8 @@ export interface DrawResultInput {
   readonly bonusType?: { readonly id: string; readonly label: string } | null;
   readonly gameMode?: GameMode;
   readonly consecutiveBonuses?: number;
+  /** Number of pseudo-consecutive cycles (擬似連). 0 or undefined = no pseudo. */
+  readonly pseudoCount?: number;
 }
 
 // ─── Effect Phases ───
@@ -41,6 +45,8 @@ export type EffectPhase =
   | "spin-start"
   | "pre-reach"
   | "reach"
+  | "pseudo-stop"
+  | "pseudo-restart"
   | "reach-presentation"
   | "post-reach"
   | "result";
@@ -267,6 +273,8 @@ export interface PresentationScenario {
   readonly ambientEffects?: readonly AmbientEffect[];
   readonly zoneId?: string | null;
   readonly telop?: TelopDefinition | null;
+  /** Number of pseudo-consecutive cycles (擬似連). 0 or undefined = no pseudo. */
+  readonly pseudoCount?: number;
 }
 
 // ─── Scenario Rules (distribution tables) ───
@@ -304,6 +312,11 @@ export interface PhaseScenarioTable {
   readonly entries: readonly PhaseEffectScenarioEntry[];
 }
 
+export interface PseudoCountEntry {
+  readonly count: number;
+  readonly weight: number;
+}
+
 export interface ScenarioRule {
   readonly id: string;
   readonly condition: ScenarioCondition;
@@ -314,6 +327,8 @@ export interface ScenarioRule {
   };
   readonly reachPresentations?: readonly ReachScenarioEntry[];
   readonly phaseEffects?: readonly PhaseScenarioTable[];
+  /** Pseudo-consecutive count distribution. Empty or omitted = no pseudo. */
+  readonly pseudoCounts?: readonly PseudoCountEntry[];
 }
 
 export interface ScenarioConfig {

@@ -41,6 +41,7 @@ export type {
   ReachScenarioEntry,
   PhaseEffectScenarioEntry,
   PhaseScenarioTable,
+  PseudoCountEntry,
   ScenarioRule,
   ScenarioConfig,
   ColorExpectationRates,

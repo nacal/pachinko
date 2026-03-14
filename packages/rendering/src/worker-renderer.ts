@@ -65,6 +65,14 @@ function computeReelSpeed(
       return 1;
     }
 
+    case "pseudo-stop":
+      return 0;
+
+    case "pseudo-restart": {
+      const p = progress(elapsed, timing.pseudoRestartDuration);
+      return easeInQuad(p);
+    }
+
     case "stopping-center": {
       if (reelIndex !== 1) return 0;
       if (isReach && timing.enableReachPresentation) return 0;
@@ -84,7 +92,8 @@ function isReelStopped(
 ): boolean {
   switch (phase) {
     case "result":
-      return true;
+    case "pseudo-stop":
+      return true; // All reels frozen during pseudo-stop
     case "stopping-right":
       return reelIndex === 0;
     case "stopping-center":
@@ -109,7 +118,12 @@ function renderFrame(rs: RendererState, now: number): void {
     const speed = computeReelSpeed(i, animState, elapsed, timing);
 
     if (animState.phase === "result" || (speed === 0 && animState.result)) {
-      const target = animState.result!.reels[reelKeys[i]!];
+      const inPseudoCycle = animState.pseudoRemaining > 0;
+      const cycleIndex = animState.pseudoCount - animState.pseudoRemaining;
+      const displayReels = inPseudoCycle && animState.pseudoReels[cycleIndex]
+        ? animState.pseudoReels[cycleIndex]!
+        : animState.result!.reels;
+      const target = displayReels[reelKeys[i]!];
       const strip = createReelStrip(symbols, target);
       const targetOffset = computeTargetOffset(strip, VISIBLE_SYMBOL_COUNT);
       const visible = getVisibleSymbols(strip, targetOffset, VISIBLE_SYMBOL_COUNT);
@@ -144,11 +158,16 @@ function animationLoop(rs: RendererState): void {
       if (rs.animState.result) {
         const reels = rs.animState.result.reels;
         if (rs.animState.phase === "stopping-right" && prevPhase === "stopping-left") {
-          rs.postMessage({ type: "reel-stop", reel: "left", symbol: reels.left });
+          if (rs.animState.pseudoRemaining === 0) {
+            rs.postMessage({ type: "reel-stop", reel: "left", symbol: reels.left });
+          }
         } else if (
           (rs.animState.phase === "stopping-center" || rs.animState.phase === "reach-presentation") &&
           prevPhase === "stopping-right"
         ) {
+          if (rs.animState.pseudoCount > 0) {
+            rs.postMessage({ type: "reel-stop", reel: "left", symbol: reels.left });
+          }
           rs.postMessage({ type: "reel-stop", reel: "right", symbol: reels.right });
         } else if (rs.animState.phase === "result" && prevPhase === "stopping-center") {
           rs.postMessage({ type: "reel-stop", reel: "center", symbol: reels.center });
@@ -204,7 +223,7 @@ export function createWorkerRenderer(
           if (rs.animFrameId !== null) {
             cancelAnimationFrame(rs.animFrameId);
           }
-          rs.animState = startSpin(msg.result, performance.now());
+          rs.animState = startSpin(msg.result, performance.now(), rs.config.symbolStrip);
           rs.postMessage({ type: "phase-change", phase: "spinning" });
           animationLoop(rs);
           break;

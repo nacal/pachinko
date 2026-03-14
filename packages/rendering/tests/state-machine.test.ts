@@ -7,7 +7,7 @@ import {
   phaseElapsed,
 } from "../src/state-machine";
 import { DEFAULT_TIMING } from "../src/constants";
-import { oatariResult, hazureResult, reachHazureResult } from "./fixtures/draw-results";
+import { oatariResult, hazureResult, reachHazureResult, pseudoResult, pseudoSingleResult, testSymbolStrip } from "./fixtures/draw-results";
 
 describe("createIdleState", () => {
   it("returns idle phase with no result", () => {
@@ -142,6 +142,156 @@ describe("tick", () => {
       "stopping-center",
       "result",
     ]);
+  });
+});
+
+describe("pseudo-consecutive (擬似連)", () => {
+  const timing = DEFAULT_TIMING;
+  const spinDuration = timing.spinUpDuration + timing.baseSpinDuration;
+  const stopDuration = timing.stopInterval + timing.stopBounceDuration;
+
+  it("startSpin initializes pseudoCount and pseudoRemaining", () => {
+    const state = startSpin(pseudoResult, 0);
+    expect(state.pseudoCount).toBe(2);
+    expect(state.pseudoRemaining).toBe(2);
+  });
+
+  it("transitions stopping-right → pseudo-stop when pseudoRemaining > 0", () => {
+    let state = startSpin(pseudoResult, 0);
+    state = tick(state, spinDuration, timing);
+    state = tick(state, state.phaseStartTime + stopDuration, timing);
+    expect(state.phase).toBe("stopping-right");
+    state = tick(state, state.phaseStartTime + stopDuration, timing);
+    expect(state.phase).toBe("pseudo-stop");
+  });
+
+  it("transitions pseudo-stop → pseudo-restart", () => {
+    let state = startSpin(pseudoResult, 0);
+    state = tick(state, spinDuration, timing);
+    state = tick(state, state.phaseStartTime + stopDuration, timing);
+    state = tick(state, state.phaseStartTime + stopDuration, timing);
+    expect(state.phase).toBe("pseudo-stop");
+    state = tick(state, state.phaseStartTime + timing.pseudoStopDuration, timing);
+    expect(state.phase).toBe("pseudo-restart");
+  });
+
+  it("transitions pseudo-restart → stopping-left and decrements pseudoRemaining", () => {
+    let state = startSpin(pseudoResult, 0);
+    state = tick(state, spinDuration, timing);
+    state = tick(state, state.phaseStartTime + stopDuration, timing);
+    state = tick(state, state.phaseStartTime + stopDuration, timing);
+    state = tick(state, state.phaseStartTime + timing.pseudoStopDuration, timing);
+    expect(state.phase).toBe("pseudo-restart");
+    expect(state.pseudoRemaining).toBe(2);
+    state = tick(state, state.phaseStartTime + timing.pseudoRestartDuration, timing);
+    expect(state.phase).toBe("stopping-left");
+    expect(state.pseudoRemaining).toBe(1);
+  });
+
+  it("completes full cycle with pseudoCount=1", () => {
+    let state = startSpin(pseudoSingleResult, 0);
+    let time = 0;
+    const phases: string[] = [state.phase];
+
+    for (let i = 0; i < 200; i++) {
+      time += 50;
+      const next = tick(state, time, timing);
+      if (next.phase !== state.phase) {
+        phases.push(next.phase);
+      }
+      state = next;
+      if (state.phase === "result") break;
+    }
+
+    expect(phases).toEqual([
+      "spinning",
+      "stopping-left",
+      "stopping-right",
+      "pseudo-stop",
+      "pseudo-restart",
+      "stopping-left",
+      "stopping-right",
+      "stopping-center",
+      "result",
+    ]);
+  });
+
+  it("completes full cycle with pseudoCount=2", () => {
+    let state = startSpin(pseudoResult, 0);
+    let time = 0;
+    const phases: string[] = [state.phase];
+
+    for (let i = 0; i < 300; i++) {
+      time += 50;
+      const next = tick(state, time, timing);
+      if (next.phase !== state.phase) {
+        phases.push(next.phase);
+      }
+      state = next;
+      if (state.phase === "result") break;
+    }
+
+    expect(phases).toEqual([
+      "spinning",
+      "stopping-left",
+      "stopping-right",
+      "pseudo-stop",      // cycle 1
+      "pseudo-restart",
+      "stopping-left",
+      "stopping-right",
+      "pseudo-stop",      // cycle 2
+      "pseudo-restart",
+      "stopping-left",
+      "stopping-right",
+      "stopping-center",  // final stop (pseudoRemaining = 0)
+      "result",
+    ]);
+  });
+
+  it("generates pseudoReels with hazure patterns when symbols provided", () => {
+    const state = startSpin(pseudoResult, 0, testSymbolStrip);
+    expect(state.pseudoReels).toHaveLength(2);
+
+    // Each pseudo reel should have 3 different symbols (no triple match)
+    for (const reels of state.pseudoReels) {
+      const ids = [reels.left.id, reels.center.id, reels.right.id];
+      // At least one must differ (not all same)
+      expect(new Set(ids).size).toBeGreaterThan(1);
+    }
+  });
+
+  it("pseudoReels are empty when no symbols provided", () => {
+    const state = startSpin(pseudoResult, 0);
+    expect(state.pseudoReels).toHaveLength(0);
+  });
+
+  it("pseudoReels differ from final result reels", () => {
+    const state = startSpin(pseudoResult, 0, testSymbolStrip);
+    const finalIds = [
+      state.result!.reels.left.id,
+      state.result!.reels.center.id,
+      state.result!.reels.right.id,
+    ];
+    // At least one pseudo reel set should differ from the final result
+    for (const reels of state.pseudoReels) {
+      const pseudoIds = [reels.left.id, reels.center.id, reels.right.id];
+      // Not all three should match (would look like final result)
+      expect(pseudoIds).not.toEqual(finalIds);
+    }
+  });
+
+  it("pseudoRemaining is 0 when final stopping-center is reached", () => {
+    let state = startSpin(pseudoSingleResult, 0);
+    let time = 0;
+
+    for (let i = 0; i < 200; i++) {
+      time += 50;
+      state = tick(state, time, timing);
+      if (state.phase === "stopping-center") break;
+    }
+
+    expect(state.phase).toBe("stopping-center");
+    expect(state.pseudoRemaining).toBe(0);
   });
 });
 

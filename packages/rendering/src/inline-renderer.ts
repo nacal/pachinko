@@ -54,6 +54,15 @@ function computeReelSpeed(
       return 1;
     }
 
+    case "pseudo-stop":
+      return 0; // All reels frozen during pseudo-stop
+
+    case "pseudo-restart": {
+      // All reels spin back up together
+      const p = progress(elapsed, timing.pseudoRestartDuration);
+      return easeInQuad(p);
+    }
+
     case "stopping-center": {
       if (reelIndex !== 1) return 0;
       if (isReach && timing.enableReachPresentation) return 0;
@@ -89,7 +98,13 @@ function renderFrame(
     const speed = computeReelSpeed(i, animState, elapsed, timing);
 
     if (animState.phase === "result" || (speed === 0 && animState.result)) {
-      const target = animState.result!.reels[reelKeys[i]!];
+      // During pseudo-consecutive cycles, show fake hazure reels instead of final result
+      const inPseudoCycle = animState.pseudoRemaining > 0;
+      const cycleIndex = animState.pseudoCount - animState.pseudoRemaining;
+      const displayReels = inPseudoCycle && animState.pseudoReels[cycleIndex]
+        ? animState.pseudoReels[cycleIndex]!
+        : animState.result!.reels;
+      const target = displayReels[reelKeys[i]!];
       const strip = createReelStrip(symbols, target);
       const targetOffset = computeTargetOffset(strip, VISIBLE_SYMBOL_COUNT);
       const visible = getVisibleSymbols(strip, targetOffset, VISIBLE_SYMBOL_COUNT);
@@ -146,14 +161,22 @@ export function createInlineReelRenderer(
       for (const cb of phaseCallbacks) cb(animState.phase);
 
       // Fire onReelStop when entering a stopping phase (reel just stopped)
+      // Don't fire during pseudo cycles — reels will restart
       if (animState.result) {
         const reels = animState.result.reels;
         if (animState.phase === "stopping-right" && prevPhase === "stopping-left") {
-          for (const cb of reelStopCallbacks) cb("left", reels.left);
+          // Only fire left reel stop if not in a pseudo cycle (will restart)
+          if (animState.pseudoRemaining === 0) {
+            for (const cb of reelStopCallbacks) cb("left", reels.left);
+          }
         } else if (
           (animState.phase === "stopping-center" || animState.phase === "reach-presentation") &&
           prevPhase === "stopping-right"
         ) {
+          // Right reel final stop — also fire left since it stopped earlier
+          if (animState.pseudoCount > 0) {
+            for (const cb of reelStopCallbacks) cb("left", reels.left);
+          }
           for (const cb of reelStopCallbacks) cb("right", reels.right);
         } else if (animState.phase === "result" && prevPhase === "stopping-center") {
           for (const cb of reelStopCallbacks) cb("center", reels.center);
@@ -181,7 +204,7 @@ export function createInlineReelRenderer(
       if (animFrameId !== null) {
         cancelAnimationFrame(animFrameId);
       }
-      animState = startSpin(result, performance.now());
+      animState = startSpin(result, performance.now(), symbols);
       for (const cb of phaseCallbacks) cb("spinning");
       animFrameId = requestAnimationFrame(loop);
     },
