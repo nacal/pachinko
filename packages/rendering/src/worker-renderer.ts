@@ -38,8 +38,10 @@ function computeReelSpeed(
   switch (phase) {
     case "idle":
     case "result":
-    case "reach-presentation":
       return 0;
+
+    case "reach-presentation":
+      return reelIndex === 1 ? 1 : 0;
 
     case "spinning": {
       const spinUp = progress(elapsed, timing.spinUpDuration);

@@ -26,8 +26,11 @@ function computeReelSpeed(
   switch (phase) {
     case "idle":
     case "result":
-    case "reach-presentation":
       return 0;
+
+    case "reach-presentation":
+      // Left and right are stopped, center keeps spinning
+      return reelIndex === 1 ? 1 : 0;
 
     case "spinning": {
       const spinUp = progress(elapsed, timing.spinUpDuration);
@@ -53,7 +56,6 @@ function computeReelSpeed(
 
     case "stopping-center": {
       if (reelIndex !== 1) return 0;
-      // After reach presentation, skip the slowdown — presentation was the drama
       if (isReach && timing.enableReachPresentation) return 0;
       const duration = isReach ? timing.reachSlowdownDuration : timing.stopInterval;
       const p = progress(elapsed, duration);

@@ -204,6 +204,11 @@ export function createEffectsEngine(
   function confirmReachPresentation(): void {
     if (!reachPresentationActive) return;
     userConfirmed = true;
+    // Force presentation complete — don't wait for effects timeline
+    presentationComplete = true;
+    activePhaseState = null;
+    currentShakeOffset = { x: 0, y: 0 };
+    ctx.clearRect(0, 0, width, height);
     checkReachPresentationEnd();
   }
 

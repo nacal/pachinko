@@ -79,10 +79,7 @@ function phaseDuration(
     case "stopping-left":
       return timing.stopInterval + timing.stopBounceDuration;
     case "stopping-center":
-      // After reach presentation, just a brief bounce to result
-      if (isReach && timing.enableReachPresentation) {
-        return timing.stopBounceDuration;
-      }
+      if (isReach && timing.enableReachPresentation) return 1;
       return (
         (isReach ? timing.reachSlowdownDuration : timing.stopInterval) +
         timing.stopBounceDuration

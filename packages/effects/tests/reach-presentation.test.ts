@@ -80,19 +80,15 @@ describe("reach presentation", () => {
     expect(cb).toHaveBeenCalled();
   });
 
-  it("fires onReachPresentationEnd when confirmed before effects complete", () => {
+  it("fires onReachPresentationEnd immediately when confirmed before effects complete", () => {
     const engine = createEffectsEngine(canvas as unknown as HTMLCanvasElement, config);
     const cb = vi.fn();
     engine.onReachPresentationEnd(cb);
     engine.start(reachHazureResult);
     engine.setPhase("reach-presentation");
 
-    // Confirm before effects complete
+    // Confirm before effects complete — should resolve immediately
     engine.confirmReachPresentation();
-    expect(cb).not.toHaveBeenCalled();
-
-    // Now effects complete
-    engine.tick(now + 300);
     expect(cb).toHaveBeenCalled();
   });
 
