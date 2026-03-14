@@ -7,8 +7,8 @@ import type {
   ProbabilityTable,
   ValidationResult,
   WeightedEntry,
-} from "./types.js";
-import { standardSymbolSet } from "./symbols.js";
+} from "./types";
+import { standardSymbolSet } from "./symbols";
 
 /**
  * Helper to express probability as "1 in X".

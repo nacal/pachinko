@@ -1,11 +1,11 @@
 import { describe, it, expect } from "vitest";
-import { createRng } from "../src/rng.js";
+import { createRng } from "../src/rng";
 import {
   weightedSelect,
   createWeightedSelector,
   isHit,
-} from "../src/lottery.js";
-import type { WeightedEntry } from "../src/types.js";
+} from "../src/lottery";
+import type { WeightedEntry } from "../src/types";
 
 describe("weightedSelect", () => {
   it("selects from single entry", () => {

@@ -3,7 +3,7 @@ import type {
   ReserveDisplay,
   ReserveDisplayConfig,
   ReserveEntry,
-} from "./types.js";
+} from "./types";
 
 interface DisplaySlot {
   entry: ReserveEntry | null;

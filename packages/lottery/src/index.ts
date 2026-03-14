@@ -22,26 +22,26 @@ export type {
   SimulationConfig,
   SimulationStats,
   ValidationResult,
-} from "./types.js";
+} from "./types";
 
 // RNG
-export { createRng } from "./rng.js";
+export { createRng } from "./rng";
 
 // Weighted lottery
-export { weightedSelect, createWeightedSelector, isHit } from "./lottery.js";
+export { weightedSelect, createWeightedSelector, isHit } from "./lottery";
 
 // Machine definition
-export { defineMachine, prob, validateConfig, validateMachineSpec } from "./machine.js";
+export { defineMachine, prob, validateConfig, validateMachineSpec } from "./machine";
 
 // Draw pipeline
-export { draw, drawOutcome, drawBonusType } from "./draw.js";
+export { draw, drawOutcome, drawBonusType } from "./draw";
 
 // State management
-export { createState, nextState } from "./state.js";
+export { createState, nextState } from "./state";
 
 // Symbols
-export { drawReels, standardSymbolSet } from "./symbols.js";
+export { drawReels, standardSymbolSet } from "./symbols";
 
 // Simulation
-export { simulate, simulateStream } from "./simulator.js";
-export type { SimulationRunner } from "./simulator.js";
+export { simulate, simulateStream } from "./simulator";
+export type { SimulationRunner } from "./simulator";

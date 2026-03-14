@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { createReserveDisplay } from "../src/display.js";
-import type { ReserveEntry } from "../src/types.js";
+import { createReserveDisplay } from "../src/display";
+import type { ReserveEntry } from "../src/types";
 
 function makeEntry(id: number, color: string = "white"): ReserveEntry {
   return {

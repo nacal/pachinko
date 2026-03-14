@@ -6,17 +6,17 @@ import type {
   GameMode,
   ReelPosition,
   SymbolSpec,
-} from "./types.js";
+} from "./types";
 import type {
   BackgroundEngine,
   BackgroundEngineConfig,
   BackgroundSource,
   BackgroundTransition,
-} from "./background-types.js";
-import { evaluateRules } from "./rule-evaluator.js";
-import { drawBackgroundSource, drawBackgroundTransition } from "./background-renderer.js";
-import { clamp } from "./utils.js";
-import { easeOutCubic } from "./easing.js";
+} from "./background-types";
+import { evaluateRules } from "./rule-evaluator";
+import { drawBackgroundSource, drawBackgroundTransition } from "./background-renderer";
+import { clamp } from "./utils";
+import { easeOutCubic } from "./easing";
 
 const DEFAULT_TRANSITION: BackgroundTransition = { type: "fade", duration: 500 };
 

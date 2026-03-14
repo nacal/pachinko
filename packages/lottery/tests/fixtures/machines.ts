@@ -1,4 +1,4 @@
-import { defineMachine, prob } from "../../src/index.js";
+import { defineMachine, prob } from "../../src/index";
 
 /**
  * Simple test machine: high hit rate for quick testing

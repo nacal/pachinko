@@ -4,8 +4,8 @@ import type {
   Rng,
   SymbolSpec,
   SymbolTable,
-} from "./types.js";
-import { weightedSelect } from "./lottery.js";
+} from "./types";
+import { weightedSelect } from "./lottery";
 
 /**
  * Generate reel results (3 reels: left, center, right).

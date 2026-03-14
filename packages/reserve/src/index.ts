@@ -10,16 +10,16 @@ export type {
   ReserveQueue,
   ReserveOrchestratorConfig,
   ReserveOrchestrator,
-} from "./types.js";
+} from "./types";
 
 // Queue
-export { createReserveQueue } from "./queue.js";
+export { createReserveQueue } from "./queue";
 
 // Pre-reading
-export { assignColor } from "./pre-reading.js";
+export { assignColor } from "./pre-reading";
 
 // Display
-export { createReserveDisplay } from "./display.js";
+export { createReserveDisplay } from "./display";
 
 // Orchestrator
-export { createReserveOrchestrator } from "./orchestrator.js";
+export { createReserveOrchestrator } from "./orchestrator";

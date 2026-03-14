@@ -1,8 +1,8 @@
 import { describe, it, expect } from "vitest";
-import { evaluateCondition, evaluateRules } from "../src/rule-evaluator.js";
-import type { EffectContext, EffectRule } from "../src/types.js";
-import { flash } from "../src/primitives.js";
-import { oatariResult, reachHazureResult, kakuhenOatariResult, hazureResult } from "./fixtures/draw-results.js";
+import { evaluateCondition, evaluateRules } from "../src/rule-evaluator";
+import type { EffectContext, EffectRule } from "../src/types";
+import { flash } from "../src/primitives";
+import { oatariResult, reachHazureResult, kakuhenOatariResult, hazureResult } from "./fixtures/draw-results";
 
 function makeContext(overrides: Partial<EffectContext> = {}): EffectContext {
   return {

@@ -1,5 +1,5 @@
-import type { Rng, WeightedEntry, WeightedSelector } from "./types.js";
-import { binarySearchCumulative } from "./utils.js";
+import type { Rng, WeightedEntry, WeightedSelector } from "./types";
+import { binarySearchCumulative } from "./utils";
 
 /**
  * Pick one value from weighted entries using the provided RNG.

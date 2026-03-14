@@ -1,4 +1,4 @@
-import type { ReserveEntry, ReserveQueue } from "./types.js";
+import type { ReserveEntry, ReserveQueue } from "./types";
 
 export function createReserveQueue(maxSize: number = 4): ReserveQueue {
   const items: ReserveEntry[] = [];

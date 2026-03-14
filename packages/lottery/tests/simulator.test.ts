@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { simulate, simulateStream } from "../src/simulator.js";
-import { simpleMachine, realisticMachine } from "./fixtures/machines.js";
+import { simulate, simulateStream } from "../src/simulator";
+import { simpleMachine, realisticMachine } from "./fixtures/machines";
 
 describe("simulate", () => {
   it("returns valid stats for simple machine", () => {

@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { createReserveOrchestrator } from "../src/orchestrator.js";
+import { createReserveOrchestrator } from "../src/orchestrator";
 import type { MachineSpec, GameState, Rng } from "@pachinko/lottery";
 import { defineMachine, createRng } from "@pachinko/lottery";
-import type { ReserveEntry, ReserveOrchestratorConfig } from "../src/types.js";
+import type { ReserveEntry, ReserveOrchestratorConfig } from "../src/types";
 
 const machine: MachineSpec = defineMachine({
   id: "test-machine",

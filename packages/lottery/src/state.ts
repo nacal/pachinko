@@ -1,4 +1,4 @@
-import type { BonusType, DrawOutcome, GameMode, GameState } from "./types.js";
+import type { BonusType, DrawOutcome, GameMode, GameState } from "./types";
 
 /**
  * Create an initial game state.

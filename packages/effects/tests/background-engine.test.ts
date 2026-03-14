@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { createBackgroundEngine } from "../src/background-engine.js";
-import type { BackgroundEngineConfig, BackgroundSource } from "../src/background-types.js";
+import { createBackgroundEngine } from "../src/background-engine";
+import type { BackgroundEngineConfig, BackgroundSource } from "../src/background-types";
 
 function createMockCanvas(): HTMLCanvasElement {
   const ctx = {

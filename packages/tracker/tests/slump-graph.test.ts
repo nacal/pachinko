@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
-import { renderSlumpGraph } from "../src/charts/slump-graph.js";
-import type { BallDataPoint } from "../src/types.js";
+import { renderSlumpGraph } from "../src/charts/slump-graph";
+import type { BallDataPoint } from "../src/types";
 
 function createMockCtx() {
   return {

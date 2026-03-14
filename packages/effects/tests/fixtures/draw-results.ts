@@ -1,4 +1,4 @@
-import type { DrawResultInput, SymbolSpec } from "../../src/types.js";
+import type { DrawResultInput, SymbolSpec } from "../../src/types";
 
 export const symbol7: SymbolSpec = { id: "7", label: "7", isKakuhen: true };
 export const symbol3: SymbolSpec = { id: "3", label: "3", isKakuhen: true };

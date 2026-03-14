@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { createState, nextState } from "../src/state.js";
-import type { BonusType } from "../src/types.js";
+import { createState, nextState } from "../src/state";
+import type { BonusType } from "../src/types";
 
 const kakuhen16R: BonusType = {
   id: "kakuhen16R",

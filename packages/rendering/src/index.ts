@@ -13,11 +13,11 @@ export type {
   RenderConfig,
   StyleConfig,
   ReelRenderer,
-} from "./types.js";
+} from "./types";
 
 // Public API
-export { createReelRenderer } from "./api.js";
-export { createInlineReelRenderer } from "./inline-renderer.js";
+export { createReelRenderer } from "./api";
+export { createInlineReelRenderer } from "./inline-renderer";
 
 // Constants
-export { DEFAULT_TIMING, DEFAULT_STYLE } from "./constants.js";
+export { DEFAULT_TIMING, DEFAULT_STYLE } from "./constants";

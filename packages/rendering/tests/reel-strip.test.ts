@@ -4,13 +4,13 @@ import {
   getVisibleSymbols,
   computeReelOffset,
   computeTargetOffset,
-} from "../src/reel-strip.js";
+} from "../src/reel-strip";
 import {
   testSymbolStrip,
   symbolSeven,
   symbolCherry,
   symbolBell,
-} from "./fixtures/draw-results.js";
+} from "./fixtures/draw-results";
 
 describe("createReelStrip", () => {
   it("finds the target symbol index", () => {

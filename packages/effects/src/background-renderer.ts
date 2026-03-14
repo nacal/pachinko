@@ -1,4 +1,4 @@
-import type { BackgroundSource } from "./background-types.js";
+import type { BackgroundSource } from "./background-types";
 
 /** Draw a single BackgroundSource onto a canvas */
 export function drawBackgroundSource(

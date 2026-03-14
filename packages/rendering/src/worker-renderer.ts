@@ -6,13 +6,13 @@ import type {
   StyleConfig,
   SymbolSpec,
   ReelLayout,
-} from "./types.js";
-import type { WorkerInMessage, WorkerOutMessage } from "./messages.js";
-import { createIdleState, startSpin, skipToResult, resolveReachPresentation, tick, phaseElapsed } from "./state-machine.js";
-import { resolveTiming, resolveStyle, computeReelLayouts, VISIBLE_SYMBOL_COUNT } from "./constants.js";
-import { createReelStrip, getVisibleSymbols, computeTargetOffset } from "./reel-strip.js";
-import { easeInQuad, easeOutQuad, easeInOutSine, easeOutBounce, progress, clamp01 } from "./animation.js";
-import { drawBackground, drawReel, drawReelDividers, drawHighlight } from "./draw-utils.js";
+} from "./types";
+import type { WorkerInMessage, WorkerOutMessage } from "./messages";
+import { createIdleState, startSpin, skipToResult, resolveReachPresentation, tick, phaseElapsed } from "./state-machine";
+import { resolveTiming, resolveStyle, computeReelLayouts, VISIBLE_SYMBOL_COUNT } from "./constants";
+import { createReelStrip, getVisibleSymbols, computeTargetOffset } from "./reel-strip";
+import { easeInQuad, easeOutQuad, easeInOutSine, easeOutBounce, progress, clamp01 } from "./animation";
+import { drawBackground, drawReel, drawReelDividers, drawHighlight } from "./draw-utils";
 
 interface RendererState {
   ctx: OffscreenCanvasRenderingContext2D;

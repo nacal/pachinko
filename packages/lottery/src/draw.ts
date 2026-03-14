@@ -8,10 +8,10 @@ import type {
   ReelResult,
   Rng,
   WeightedEntry,
-} from "./types.js";
-import { weightedSelect } from "./lottery.js";
-import { nextState } from "./state.js";
-import { drawReels } from "./symbols.js";
+} from "./types";
+import { weightedSelect } from "./lottery";
+import { nextState } from "./state";
+import { drawReels } from "./symbols";
 
 /**
  * Perform a complete multi-stage draw.

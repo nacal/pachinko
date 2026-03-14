@@ -1,4 +1,4 @@
-import type { DrawResultInput, ReelPhase, ReelPosition, RenderConfig, SymbolSpec } from "./types.js";
+import type { DrawResultInput, ReelPhase, ReelPosition, RenderConfig, SymbolSpec } from "./types";
 
 // ─── Main thread → Worker ───
 

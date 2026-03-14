@@ -1,5 +1,5 @@
-import type { SessionSnapshot, SessionStats, TrackerConfig, HitEntry } from "./types.js";
-import { formatProbability } from "./utils.js";
+import type { SessionSnapshot, SessionStats, TrackerConfig, HitEntry, LastHitInfo } from "./types";
+import { formatProbability } from "./utils";
 
 export function computeMaxDrought(
   hitHistory: readonly HitEntry[],
@@ -72,6 +72,13 @@ export function computeStats(
     }
   }
 
+  // Last N hit rotations for mini display
+  const recentHits = snapshot.hitHistory.slice(-5);
+  const lastHitRotations: LastHitInfo[] = recentHits.map((h) => ({
+    rotations: h.rotationsSinceLastHit,
+    bonusTypeId: h.bonusType.id,
+  }));
+
   return {
     totalSpins: snapshot.totalSpins,
     totalHits,
@@ -86,5 +93,6 @@ export function computeStats(
     netBalls: snapshot.netBalls,
     kakuhenCount,
     normalCount,
+    lastHitRotations,
   };
 }

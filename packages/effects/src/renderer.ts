@@ -1,6 +1,6 @@
-import type { EffectPrimitive, ShakeOffset } from "./types.js";
-import { clamp, lerpColor } from "./utils.js";
-import { easeOutCubic } from "./easing.js";
+import type { EffectPrimitive, ShakeOffset } from "./types";
+import { clamp, lerpColor } from "./utils";
+import { easeOutCubic } from "./easing";
 
 export function renderEffect(
   ctx: CanvasRenderingContext2D,

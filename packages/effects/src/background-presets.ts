@@ -1,5 +1,5 @@
-import type { BackgroundSource, BackgroundRenderFn } from "./background-types.js";
-import { parseHexColor } from "./utils.js";
+import type { BackgroundSource, BackgroundRenderFn } from "./background-types";
+import { parseHexColor } from "./utils";
 
 /** Solid color background */
 export function colorBg(color: string): BackgroundSource {

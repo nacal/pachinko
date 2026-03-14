@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { connectRenderer } from "../src/adapter.js";
-import type { EffectsEngine, ReelRendererLike, ReelPhase, ReelPosition, SymbolSpec } from "../src/types.js";
+import { connectRenderer } from "../src/adapter";
+import type { EffectsEngine, ReelRendererLike, ReelPhase, ReelPosition, SymbolSpec } from "../src/types";
 
 let rafId = 0;
 const originalRAF = globalThis.requestAnimationFrame;

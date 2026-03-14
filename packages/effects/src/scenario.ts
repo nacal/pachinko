@@ -12,7 +12,7 @@ import type {
   ScenarioConfig,
   ScenarioRng,
   ScenarioRule,
-} from "./types.js";
+} from "./types";
 
 function matchesValue<T>(condition: T | readonly T[] | undefined, value: T): boolean {
   if (condition === undefined) return true;

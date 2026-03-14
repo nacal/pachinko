@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { flash, textOverlay, backgroundChange, shake, fade, custom } from "../src/primitives.js";
+import { flash, textOverlay, backgroundChange, shake, fade, custom } from "../src/primitives";
 
 describe("flash", () => {
   it("creates with defaults", () => {

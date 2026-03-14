@@ -1,4 +1,4 @@
-import type { SymbolSpec, ReelStrip } from "./types.js";
+import type { SymbolSpec, ReelStrip } from "./types";
 
 /** Create a reel strip targeting a specific symbol */
 export function createReelStrip(

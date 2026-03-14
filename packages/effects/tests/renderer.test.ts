@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { renderEffect, computeShakeOffset } from "../src/renderer.js";
-import { flash, textOverlay, backgroundChange, fade, shake, custom } from "../src/primitives.js";
+import { renderEffect, computeShakeOffset } from "../src/renderer";
+import { flash, textOverlay, backgroundChange, fade, shake, custom } from "../src/primitives";
 
 function createMockCtx() {
   return {

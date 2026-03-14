@@ -11,10 +11,10 @@ import type {
   ShakeOffset,
   SymbolSpec,
   Timeline,
-} from "./types.js";
-import { evaluateRules } from "./rule-evaluator.js";
-import { buildTimeline, getActiveEntries } from "./timeline.js";
-import { renderEffect, computeShakeOffset } from "./renderer.js";
+} from "./types";
+import { evaluateRules } from "./rule-evaluator";
+import { buildTimeline, getActiveEntries } from "./timeline";
+import { renderEffect, computeShakeOffset } from "./renderer";
 
 interface PhaseState {
   readonly phase: EffectPhase;

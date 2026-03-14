@@ -6,7 +6,7 @@ import {
   easeOutBounce,
   clamp01,
   progress,
-} from "../src/animation.js";
+} from "../src/animation";
 
 describe("easeInQuad", () => {
   it("returns 0 at t=0", () => {

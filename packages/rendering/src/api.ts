@@ -5,10 +5,10 @@ import type {
   ReelPhase,
   ReelPosition,
   SymbolSpec,
-} from "./types.js";
-import type { WorkerOutMessage } from "./messages.js";
-import { isWorkerOutMessage } from "./messages.js";
-import { createInlineReelRenderer } from "./inline-renderer.js";
+} from "./types";
+import type { WorkerOutMessage } from "./messages";
+import { isWorkerOutMessage } from "./messages";
+import { createInlineReelRenderer } from "./inline-renderer";
 
 /**
  * Create a reel renderer with OffscreenCanvas + Worker support.

@@ -3,8 +3,8 @@ import type {
   EffectPrimitive,
   Timeline,
   TimelineEntry,
-} from "./types.js";
-import { computeTotalDuration } from "./utils.js";
+} from "./types";
+import { computeTotalDuration } from "./utils";
 
 function isPrimitive(effect: EffectOrComposite): effect is EffectPrimitive {
   return effect.type !== "sequence" && effect.type !== "parallel" && effect.type !== "stagger";

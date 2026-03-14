@@ -4,9 +4,9 @@ import type {
   ReserveEntry,
   ReserveOrchestrator,
   ReserveOrchestratorConfig,
-} from "./types.js";
-import { createReserveQueue } from "./queue.js";
-import { assignColor } from "./pre-reading.js";
+} from "./types";
+import { createReserveQueue } from "./queue";
+import { assignColor } from "./pre-reading";
 
 export function createReserveOrchestrator(
   config: ReserveOrchestratorConfig,

@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
-import { assignColor } from "../src/pre-reading.js";
+import { assignColor } from "../src/pre-reading";
 import type { DrawResult, Rng } from "@pachinko/lottery";
-import type { PreReadingConfig } from "../src/types.js";
+import type { PreReadingConfig } from "../src/types";
 
 function makeRng(values: number[]): Rng {
   let index = 0;

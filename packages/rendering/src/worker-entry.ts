@@ -1,5 +1,5 @@
-import type { WorkerInMessage } from "./messages.js";
-import { createWorkerRenderer } from "./worker-renderer.js";
+import type { WorkerInMessage } from "./messages";
+import { createWorkerRenderer } from "./worker-renderer";
 
 declare const self: {
   onmessage: ((e: MessageEvent) => void) | null;

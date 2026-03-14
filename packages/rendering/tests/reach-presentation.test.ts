@@ -4,10 +4,10 @@ import {
   skipToResult,
   resolveReachPresentation,
   tick,
-} from "../src/state-machine.js";
-import { DEFAULT_TIMING } from "../src/constants.js";
-import type { TimingConfig } from "../src/types.js";
-import { oatariResult, hazureResult, reachHazureResult } from "./fixtures/draw-results.js";
+} from "../src/state-machine";
+import { DEFAULT_TIMING } from "../src/constants";
+import type { TimingConfig } from "../src/types";
+import { oatariResult, hazureResult, reachHazureResult } from "./fixtures/draw-results";
 
 const reachTiming: TimingConfig = {
   ...DEFAULT_TIMING,

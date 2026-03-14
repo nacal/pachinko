@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { createRng } from "../src/rng.js";
-import { drawReels, standardSymbolSet } from "../src/symbols.js";
+import { createRng } from "../src/rng";
+import { drawReels, standardSymbolSet } from "../src/symbols";
 
 describe("standardSymbolSet", () => {
   it("creates symbol table from labels", () => {

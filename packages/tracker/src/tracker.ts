@@ -8,8 +8,8 @@ import type {
   SessionTracker,
   DrawOutcome,
   GameMode,
-} from "./types.js";
-import { computeStats } from "./stats.js";
+} from "./types";
+import { computeStats } from "./stats";
 
 function createOutcomeRecord(): Record<DrawOutcome, number> {
   return { oatari: 0, koatari: 0, hazure: 0 };

@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
-import { buildTimeline, getActiveEntries, computeEffectDuration } from "../src/timeline.js";
-import { flash, shake } from "../src/primitives.js";
-import { sequence, parallel, stagger } from "../src/composer.js";
+import { buildTimeline, getActiveEntries, computeEffectDuration } from "../src/timeline";
+import { flash, shake } from "../src/primitives";
+import { sequence, parallel, stagger } from "../src/composer";
 
 describe("buildTimeline", () => {
   it("flattens a single primitive", () => {

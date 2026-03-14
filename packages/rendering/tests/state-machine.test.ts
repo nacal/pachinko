@@ -5,9 +5,9 @@ import {
   skipToResult,
   tick,
   phaseElapsed,
-} from "../src/state-machine.js";
-import { DEFAULT_TIMING } from "../src/constants.js";
-import { oatariResult, hazureResult, reachHazureResult } from "./fixtures/draw-results.js";
+} from "../src/state-machine";
+import { DEFAULT_TIMING } from "../src/constants";
+import { oatariResult, hazureResult, reachHazureResult } from "./fixtures/draw-results";
 
 describe("createIdleState", () => {
   it("returns idle phase with no result", () => {

@@ -3,7 +3,7 @@ import type {
   SequenceComposite,
   ParallelComposite,
   StaggerComposite,
-} from "./types.js";
+} from "./types";
 
 export function sequence(...effects: EffectOrComposite[]): SequenceComposite {
   return { type: "sequence", effects };

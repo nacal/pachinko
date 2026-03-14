@@ -1,8 +1,8 @@
 import { describe, it, expect } from "vitest";
-import { createRng } from "../src/rng.js";
-import { draw, drawOutcome, drawBonusType } from "../src/draw.js";
-import { createState } from "../src/state.js";
-import { simpleMachine, realisticMachine } from "./fixtures/machines.js";
+import { createRng } from "../src/rng";
+import { draw, drawOutcome, drawBonusType } from "../src/draw";
+import { createState } from "../src/state";
+import { simpleMachine, realisticMachine } from "./fixtures/machines";
 
 describe("drawOutcome", () => {
   it("returns oatari when value is within hit range", () => {

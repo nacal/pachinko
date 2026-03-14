@@ -3,7 +3,7 @@ import type {
   ReelAnimationState,
   DrawResultInput,
   TimingConfig,
-} from "./types.js";
+} from "./types";
 
 export function createIdleState(): ReelAnimationState {
   return {

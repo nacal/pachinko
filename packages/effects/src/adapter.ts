@@ -3,8 +3,8 @@ import type {
   EffectPhase,
   ReelPhase,
   ReelRendererLike,
-} from "./types.js";
-import type { BackgroundEngine } from "./background-types.js";
+} from "./types";
+import type { BackgroundEngine } from "./background-types";
 
 const REEL_PHASE_TO_EFFECT_PHASE: Partial<Record<ReelPhase, EffectPhase>> = {
   spinning: "spin-start",

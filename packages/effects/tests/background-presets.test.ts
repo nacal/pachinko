@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { colorBg, imageBg, videoBg, canvasBg, particleBg, gradientBg } from "../src/background-presets.js";
+import { colorBg, imageBg, videoBg, canvasBg, particleBg, gradientBg } from "../src/background-presets";
 
 describe("background presets", () => {
   it("colorBg creates color source", () => {

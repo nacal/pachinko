@@ -1,10 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { resolveScenario, computeColorExpectations } from "../src/scenario.js";
+import { resolveScenario, computeColorExpectations } from "../src/scenario";
 import type {
   DrawResultInput,
   ScenarioConfig,
   ScenarioRng,
-} from "../src/types.js";
+} from "../src/types";
 
 function createRng(values: number[]): ScenarioRng {
   let i = 0;

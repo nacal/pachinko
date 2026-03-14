@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { defineMachine, prob, validateConfig } from "../src/machine.js";
-import type { MachineConfig } from "../src/types.js";
+import { defineMachine, prob, validateConfig } from "../src/machine";
+import type { MachineConfig } from "../src/types";
 
 describe("prob", () => {
   it("converts 1/319.68 to totalRange/hits", () => {

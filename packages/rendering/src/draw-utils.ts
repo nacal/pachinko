@@ -1,4 +1,4 @@
-import type { SymbolSpec, ReelLayout, StyleConfig } from "./types.js";
+import type { SymbolSpec, ReelLayout, StyleConfig } from "./types";
 
 type Ctx = CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D;
 

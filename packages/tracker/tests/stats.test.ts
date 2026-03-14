@@ -1,8 +1,8 @@
 import { describe, it, expect } from "vitest";
-import { computeMaxDrought, computeStreakStats, computeStats } from "../src/stats.js";
-import { formatProbability } from "../src/utils.js";
-import type { HitEntry, SessionSnapshot } from "../src/types.js";
-import { kakuhen16R, tsujou10R, defaultConfig } from "./fixtures/sessions.js";
+import { computeMaxDrought, computeStreakStats, computeStats } from "../src/stats";
+import { formatProbability } from "../src/utils";
+import type { HitEntry, SessionSnapshot } from "../src/types";
+import { kakuhen16R, tsujou10R, defaultConfig } from "./fixtures/sessions";
 
 describe("formatProbability", () => {
   it("formats as 1/X", () => {

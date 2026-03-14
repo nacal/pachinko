@@ -1,9 +1,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { createEffectsEngine } from "../src/engine.js";
-import { flash, textOverlay } from "../src/primitives.js";
-import { sequence } from "../src/composer.js";
-import { oatariResult, reachHazureResult } from "./fixtures/draw-results.js";
-import type { ReachPresentation, EffectsEngineConfig } from "../src/types.js";
+import { createEffectsEngine } from "../src/engine";
+import { flash, textOverlay } from "../src/primitives";
+import { sequence } from "../src/composer";
+import { oatariResult, reachHazureResult } from "./fixtures/draw-results";
+import type { ReachPresentation, EffectsEngineConfig } from "../src/types";
 
 function createMockCanvas() {
   const ctx = {

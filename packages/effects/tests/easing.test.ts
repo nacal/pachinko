@@ -9,7 +9,7 @@ import {
   easeInOutCubic,
   easeOutElastic,
   easeOutBounce,
-} from "../src/easing.js";
+} from "../src/easing";
 
 describe("easing functions", () => {
   const fns = [

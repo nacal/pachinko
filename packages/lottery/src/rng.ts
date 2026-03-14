@@ -1,5 +1,5 @@
-import type { Rng, RngSeed } from "./types.js";
-import { hashString } from "./utils.js";
+import type { Rng, RngSeed } from "./types";
+import { hashString } from "./utils";
 
 /**
  * xoshiro128** PRNG implementation.

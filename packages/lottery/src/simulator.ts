@@ -5,11 +5,11 @@ import type {
   Rng,
   SimulationConfig,
   SimulationStats,
-} from "./types.js";
-import { createRng } from "./rng.js";
-import { draw } from "./draw.js";
-import { createState } from "./state.js";
-import { formatProbability } from "./utils.js";
+} from "./types";
+import { createRng } from "./rng";
+import { draw } from "./draw";
+import { createState } from "./state";
+import { formatProbability } from "./utils";
 
 /**
  * Run a simulation of N spins and return aggregated statistics.

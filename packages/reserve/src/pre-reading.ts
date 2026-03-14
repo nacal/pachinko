@@ -1,5 +1,5 @@
 import type { DrawResult, Rng } from "@pachinko/lottery";
-import type { PreReadingConfig, PreReadingCondition, PreReadingRule } from "./types.js";
+import type { PreReadingConfig, PreReadingCondition, PreReadingRule } from "./types";
 
 function matchesCondition(
   drawResult: DrawResult,

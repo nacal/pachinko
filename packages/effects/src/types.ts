@@ -343,7 +343,7 @@ export type {
   ModeBackgroundMap,
   BackgroundEngineConfig,
   BackgroundEngine,
-} from "./background-types.js";
+} from "./background-types";
 
 // ─── ReelRenderer (subset for adapter) ───
 

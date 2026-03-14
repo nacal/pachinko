@@ -1,4 +1,4 @@
-import type { EffectCondition, EffectContext, EffectRule, EffectPhase } from "./types.js";
+import type { EffectCondition, EffectContext, EffectRule, EffectPhase } from "./types";
 
 function matchesValue<T>(condition: T | readonly T[] | undefined, value: T): boolean {
   if (condition === undefined) return true;

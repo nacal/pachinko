@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { isWorkerInMessage, isWorkerOutMessage } from "../src/messages.js";
+import { isWorkerInMessage, isWorkerOutMessage } from "../src/messages";
 
 describe("isWorkerInMessage", () => {
   it("returns true for valid spin message", () => {

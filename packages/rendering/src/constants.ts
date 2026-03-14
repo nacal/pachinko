@@ -1,4 +1,4 @@
-import type { TimingConfig, StyleConfig, ReelLayout } from "./types.js";
+import type { TimingConfig, StyleConfig, ReelLayout } from "./types";
 
 export const DEFAULT_TIMING: TimingConfig = {
   spinUpDuration: 300,

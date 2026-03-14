@@ -1,4 +1,4 @@
-import type { SpinInput, BonusType, TrackerConfig, HitEntry } from "../../src/types.js";
+import type { SpinInput, BonusType, TrackerConfig, HitEntry } from "../../src/types";
 
 export const kakuhen16R: BonusType = {
   id: "kakuhen16R",

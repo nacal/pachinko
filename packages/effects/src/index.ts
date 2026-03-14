@@ -53,7 +53,7 @@ export type {
   ModeBackgroundMap,
   BackgroundEngineConfig,
   BackgroundEngine,
-} from "./types.js";
+} from "./types";
 
 // ─── Easing ───
 export {
@@ -66,13 +66,13 @@ export {
   easeInOutCubic,
   easeOutElastic,
   easeOutBounce,
-} from "./easing.js";
+} from "./easing";
 
 // ─── Utils ───
-export { lerp, clamp, lerpColor, parseHexColor } from "./utils.js";
+export { lerp, clamp, lerpColor, parseHexColor } from "./utils";
 
 // ─── Primitives ───
-export { flash, textOverlay, backgroundChange, shake, fade, imageOverlay, custom } from "./primitives.js";
+export { flash, textOverlay, backgroundChange, shake, fade, imageOverlay, custom } from "./primitives";
 export type {
   FlashOptions,
   TextOverlayOptions,
@@ -81,31 +81,31 @@ export type {
   FadeOptions,
   ImageOverlayOptions,
   CustomEffectOptions,
-} from "./primitives.js";
+} from "./primitives";
 
 // ─── Composer ───
-export { sequence, parallel, stagger } from "./composer.js";
+export { sequence, parallel, stagger } from "./composer";
 
 // ─── Timeline ───
-export { buildTimeline, getActiveEntries, computeEffectDuration } from "./timeline.js";
+export { buildTimeline, getActiveEntries, computeEffectDuration } from "./timeline";
 
 // ─── Rule Evaluator ───
-export { evaluateCondition, evaluateRules } from "./rule-evaluator.js";
+export { evaluateCondition, evaluateRules } from "./rule-evaluator";
 
 // ─── Renderer ───
-export { renderEffect, computeShakeOffset } from "./renderer.js";
+export { renderEffect, computeShakeOffset } from "./renderer";
 
 // ─── Engine ───
-export { createEffectsEngine } from "./engine.js";
+export { createEffectsEngine } from "./engine";
 
 // ─── Background ───
-export { createBackgroundEngine } from "./background-engine.js";
-export { drawBackgroundSource, drawBackgroundTransition } from "./background-renderer.js";
-export { colorBg, imageBg, videoBg, canvasBg, particleBg, gradientBg } from "./background-presets.js";
-export type { ParticleBgOptions, GradientBgOptions } from "./background-presets.js";
+export { createBackgroundEngine } from "./background-engine";
+export { drawBackgroundSource, drawBackgroundTransition } from "./background-renderer";
+export { colorBg, imageBg, videoBg, canvasBg, particleBg, gradientBg } from "./background-presets";
+export type { ParticleBgOptions, GradientBgOptions } from "./background-presets";
 
 // ─── Scenario ───
-export { resolveScenario, computeColorExpectations } from "./scenario.js";
+export { resolveScenario, computeColorExpectations } from "./scenario";
 
 // ─── Adapter ───
-export { connectRenderer, connectBackgroundEngine } from "./adapter.js";
+export { connectRenderer, connectBackgroundEngine } from "./adapter";

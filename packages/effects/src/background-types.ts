@@ -5,7 +5,7 @@ import type {
   GameMode,
   ReelPosition,
   SymbolSpec,
-} from "./types.js";
+} from "./types";
 
 // ─── Background Sources ───
 

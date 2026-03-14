@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { createSessionTracker } from "../src/tracker.js";
-import { defaultConfig, makeHazure, makeOatari, makeHitSequence, kakuhen16R, tsujou10R } from "./fixtures/sessions.js";
+import { createSessionTracker } from "../src/tracker";
+import { defaultConfig, makeHazure, makeOatari, makeHitSequence, kakuhen16R, tsujou10R } from "./fixtures/sessions";
 
 describe("createSessionTracker", () => {
   it("starts with empty state", () => {

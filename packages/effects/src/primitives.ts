@@ -8,7 +8,7 @@ import type {
   CustomEffect,
   EffectTiming,
   EffectPosition,
-} from "./types.js";
+} from "./types";
 
 // ─── Defaults ───
 

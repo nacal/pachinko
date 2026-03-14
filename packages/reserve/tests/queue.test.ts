@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { createReserveQueue } from "../src/queue.js";
-import type { ReserveEntry } from "../src/types.js";
+import { createReserveQueue } from "../src/queue";
+import type { ReserveEntry } from "../src/types";
 
 function makeEntry(id: number, color: string = "white"): ReserveEntry {
   return {

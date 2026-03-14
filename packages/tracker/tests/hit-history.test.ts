@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
-import { renderHitHistory } from "../src/charts/hit-history.js";
-import type { HitEntry } from "../src/types.js";
-import { kakuhen16R, tsujou10R } from "./fixtures/sessions.js";
+import { renderHitHistory } from "../src/charts/hit-history";
+import type { HitEntry } from "../src/types";
+import { kakuhen16R, tsujou10R } from "./fixtures/sessions";
 
 function createMockCtx() {
   return {

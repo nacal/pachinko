@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { drawBackgroundSource, drawBackgroundTransition } from "../src/background-renderer.js";
-import type { BackgroundSource } from "../src/background-types.js";
+import { drawBackgroundSource, drawBackgroundTransition } from "../src/background-renderer";
+import type { BackgroundSource } from "../src/background-types";
 
 function createMockCtx(): CanvasRenderingContext2D {
   return {
