@@ -10,7 +10,8 @@ pachinko/
 │   ├── lottery/     # @pachinko/lottery — 抽選エンジン
 │   ├── rendering/   # @pachinko/rendering — リールアニメーション描画
 │   ├── effects/     # @pachinko/effects — 演出エフェクトエンジン
-│   └── tracker/     # @pachinko/tracker — データトラッキング＆可視化
+│   ├── tracker/     # @pachinko/tracker — データトラッキング＆可視化
+│   └── reserve/     # @pachinko/reserve — 保留システム
 ├── site/            # ドキュメント・デモサイト (Vite)
 ├── package.json     # ルート（pnpm workspaces）
 ├── README.md        # 英語
@@ -104,6 +105,18 @@ packages/tracker/src/
     └── stats-panel.ts # データランプ風統計パネル
 ```
 
+## @pachinko/reserve の構造
+
+```
+packages/reserve/src/
+├── index.ts           # barrel export
+├── types.ts           # 全型定義
+├── queue.ts           # 保留キュー (createReserveQueue)
+├── pre-reading.ts     # 先読み色割り当て (assignColor)
+├── display.ts         # Canvas保留表示 (createReserveDisplay)
+└── orchestrator.ts    # 統合オーケストレーター (createReserveOrchestrator)
+```
+
 ## コミットメッセージ
 
 Conventional Commits 形式:
@@ -111,6 +124,7 @@ Conventional Commits 形式:
 - `feat(rendering):` — rendering パッケージの新機能
 - `feat(effects):` — effects パッケージの新機能
 - `feat(tracker):` — tracker パッケージの新機能
+- `feat(reserve):` — reserve パッケージの新機能
 - `fix(lottery):` — バグ修正
 - `docs:` — ドキュメント
 - `chore:` — 設定・メンテナンス

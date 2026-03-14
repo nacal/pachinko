@@ -12,6 +12,7 @@
 | [@pachinko/rendering](./packages/rendering/) | OffscreenCanvas + Worker 対応の Canvas 2D リールアニメーションレンダラー | `0.1.0` |
 | [@pachinko/effects](./packages/effects/) | 宣言的な演出エフェクトエンジン — フラッシュ・シェイク・テキストオーバーレイ・背景レイヤー・コンポーザブルなパイプライン | `0.1.0` |
 | [@pachinko/tracker](./packages/tracker/) | セッションデータトラッキングと Canvas 可視化 — スランプグラフ・大当たり履歴チャート・データランプ風統計パネル | `0.1.0` |
+| [@pachinko/reserve](./packages/reserve/) | 保留システム — キュー管理・先読み演出（色変化）・保留表示・自動消化 | `0.1.0` |
 
 ## はじめに
 

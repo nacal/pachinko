@@ -12,6 +12,7 @@ This monorepo provides a collection of packages that model the core mechanics of
 | [@pachinko/rendering](./packages/rendering/) | Canvas 2D reel animation renderer with OffscreenCanvas + Worker support | `0.1.0` |
 | [@pachinko/effects](./packages/effects/) | Declarative presentation effects engine — flash, shake, text overlays, background layers, and composable effect pipelines | `0.1.0` |
 | [@pachinko/tracker](./packages/tracker/) | Session data tracking and Canvas visualization — slump graphs, hit history charts, and data lamp stats panels | `0.1.0` |
+| [@pachinko/reserve](./packages/reserve/) | Pending ball reservation system — queue management, pre-reading color hints, visual display, and auto-spin | `0.1.0` |
 
 ## Getting Started
 

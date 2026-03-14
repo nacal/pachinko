@@ -254,6 +254,12 @@ section h2 {
   pointer-events: none;
 }
 
+#reserve-canvas {
+  display: block;
+  margin-top: 0.75rem;
+  width: 100%;
+}
+
 .demo-controls {
   display: flex;
   gap: 1rem;
@@ -299,6 +305,55 @@ section h2 {
 .outcome-oatari { color: var(--accent); }
 .outcome-koatari { color: var(--gold); }
 .outcome-hazure { color: var(--text-muted); }
+
+/* ─── Color expectation legend ─── */
+
+.color-legend-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.35rem 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.9rem;
+}
+
+.color-legend-row:last-child {
+  border-bottom: none;
+}
+
+.color-legend-circle {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.color-legend-name {
+  flex: 1;
+}
+
+.color-legend-bar-track {
+  flex: 2;
+  height: 8px;
+  background: var(--bg);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.color-legend-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.3s;
+}
+
+.color-legend-pct {
+  width: 52px;
+  text-align: right;
+  font-weight: 600;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+}
 
 /* ─── Charts ─── */
 

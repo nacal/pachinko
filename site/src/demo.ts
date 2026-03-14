@@ -22,8 +22,17 @@ import {
   colorBg,
   gradientBg,
   particleBg,
+  resolveScenario,
+  computeColorExpectations,
 } from "@pachinko/effects";
-import type { EffectRule, ReachPresentation, BackgroundRule } from "@pachinko/effects";
+import type {
+  EffectRule,
+  ReachPresentation,
+  BackgroundRule,
+  ScenarioConfig,
+  PresentationScenario,
+  ScenarioRng,
+} from "@pachinko/effects";
 import {
   createSessionTracker,
   renderStatsPanel,
@@ -31,6 +40,11 @@ import {
   renderHitHistory,
 } from "@pachinko/tracker";
 import type { TrackerConfig } from "@pachinko/tracker";
+import {
+  createReserveOrchestrator,
+  createReserveDisplay,
+} from "@pachinko/reserve";
+import type { ReserveEntry } from "@pachinko/reserve";
 
 // ─── Machine definition (demo: high hit rate for fun) ───
 
@@ -117,12 +131,14 @@ async function loadSymbolStrip(): Promise<SymbolSpec[]> {
 const bgCanvas = document.getElementById("bg-canvas") as HTMLCanvasElement;
 const canvas = document.getElementById("reel-canvas") as HTMLCanvasElement;
 const effectsCanvas = document.getElementById("effects-canvas") as HTMLCanvasElement;
+const reserveCanvas = document.getElementById("reserve-canvas") as HTMLCanvasElement;
 const btnSpin = document.getElementById("btn-spin") as HTMLButtonElement;
 const btnConfirm = document.getElementById("btn-confirm") as HTMLButtonElement;
 const btnSkip = document.getElementById("btn-skip") as HTMLButtonElement;
 const modeBanner = document.getElementById("mode-banner")!;
 const modeLabel = document.getElementById("mode-label")!;
 const modeDetail = document.getElementById("mode-detail")!;
+const colorLegendEl = document.getElementById("color-legend")!;
 const statsPanelCanvas = document.getElementById("stats-panel") as HTMLCanvasElement;
 const slumpGraphCanvas = document.getElementById("slump-graph") as HTMLCanvasElement;
 const hitHistoryCanvas = document.getElementById("hit-history") as HTMLCanvasElement;
@@ -330,6 +346,242 @@ const backgroundRules: BackgroundRule[] = [
   },
 ];
 
+// ─── Scenario config (presentation distribution tables) ───
+
+const scenarioConfig: ScenarioConfig = {
+  defaultColor: "white",
+  rules: [
+    {
+      id: "oatari",
+      condition: { outcome: "oatari" },
+      priority: 10,
+      color: {
+        entries: [
+          { color: "rainbow", weight: 50, reliability: 0.95 },
+          { color: "gold", weight: 30, reliability: 0.9 },
+          { color: "red", weight: 15, reliability: 0.7 },
+          { color: "green", weight: 20, reliability: 0.4 },
+          { color: "blue", weight: 40, reliability: 0.15 },
+          { color: "white", weight: 100, reliability: 0.05 },
+        ],
+      },
+      reachPresentations: [
+        {
+          presentationId: "kakuhen-super-reach",
+          weight: 70,
+          effects: [
+            sequence(
+              flash({ color: "#ff0000", opacity: 0.8, count: 10, timing: { delay: 0, duration: 2000 } }),
+              textOverlay("超激アツ!", {
+                font: "bold 96px sans-serif",
+                color: "#ff0000",
+                timing: { delay: 0, duration: 2000 },
+                fadeIn: 300,
+                fadeOut: 500,
+              }),
+              parallel(
+                shake({ intensity: 15, frequency: 50, timing: { delay: 0, duration: 1500 } }),
+                flash({ color: "#ffd700", opacity: 0.6, count: 8, timing: { delay: 0, duration: 1500 } }),
+              ),
+              textOverlay("ボタンを押せ!", {
+                font: "bold 48px sans-serif",
+                color: "#ffd700",
+                timing: { delay: 0, duration: 3000 },
+                fadeIn: 100,
+                fadeOut: 0,
+              }),
+            ),
+          ],
+          requireConfirm: true,
+          confirmReadyAt: 5500,
+        },
+        {
+          presentationId: "normal-reach",
+          weight: 30,
+          effects: [
+            sequence(
+              textOverlay("リーチ!", {
+                font: "bold 72px sans-serif",
+                color: "#ff0000",
+                timing: { delay: 0, duration: 1500 },
+                fadeIn: 200,
+                fadeOut: 300,
+              }),
+              parallel(
+                flash({ color: "#ff4444", opacity: 0.5, count: 5, timing: { delay: 0, duration: 1000 } }),
+                shake({ intensity: 8, frequency: 30, timing: { delay: 0, duration: 1000 } }),
+              ),
+              textOverlay("ボタンを押せ!", {
+                font: "bold 48px sans-serif",
+                color: "#ffd700",
+                timing: { delay: 0, duration: 3000 },
+                fadeIn: 100,
+                fadeOut: 0,
+              }),
+            ),
+          ],
+          requireConfirm: true,
+          confirmReadyAt: 2500,
+        },
+      ],
+      phaseEffects: [
+        {
+          phase: "reach",
+          entries: [
+            {
+              weight: 100,
+              effects: [
+                parallel(
+                  flash({ color: "#ff0000", opacity: 0.4, count: 3, timing: { delay: 0, duration: 600 } }),
+                  shake({ intensity: 6, frequency: 25, timing: { delay: 0, duration: 500 } }),
+                ),
+              ],
+            },
+          ],
+        },
+        {
+          phase: "result",
+          entries: [
+            {
+              weight: 100,
+              effects: [
+                sequence(
+                  flash({ color: "#ffd700", opacity: 0.7, count: 5, timing: { delay: 0, duration: 800 } }),
+                  parallel(
+                    textOverlay("大当り!", {
+                      font: "bold 64px sans-serif",
+                      color: "#ffd700",
+                      timing: { delay: 0, duration: 2500 },
+                      fadeIn: 200,
+                      fadeOut: 400,
+                    }),
+                    shake({ intensity: 12, frequency: 40, timing: { delay: 0, duration: 600 } }),
+                  ),
+                ),
+              ],
+            },
+          ],
+        },
+      ],
+    },
+    {
+      id: "reach-hazure",
+      condition: { outcome: "hazure", isReach: true },
+      priority: 5,
+      reachPresentations: [
+        {
+          presentationId: "normal-reach",
+          weight: 90,
+          effects: [
+            sequence(
+              textOverlay("リーチ!", {
+                font: "bold 72px sans-serif",
+                color: "#ff0000",
+                timing: { delay: 0, duration: 1500 },
+                fadeIn: 200,
+                fadeOut: 300,
+              }),
+              parallel(
+                flash({ color: "#ff4444", opacity: 0.5, count: 5, timing: { delay: 0, duration: 1000 } }),
+                shake({ intensity: 8, frequency: 30, timing: { delay: 0, duration: 1000 } }),
+              ),
+              textOverlay("ボタンを押せ!", {
+                font: "bold 48px sans-serif",
+                color: "#ffd700",
+                timing: { delay: 0, duration: 3000 },
+                fadeIn: 100,
+                fadeOut: 0,
+              }),
+            ),
+          ],
+          requireConfirm: true,
+          confirmReadyAt: 2500,
+        },
+        {
+          presentationId: "kakuhen-super-reach",
+          weight: 10,
+          effects: [
+            sequence(
+              flash({ color: "#ff0000", opacity: 0.8, count: 10, timing: { delay: 0, duration: 2000 } }),
+              textOverlay("超激アツ!", {
+                font: "bold 96px sans-serif",
+                color: "#ff0000",
+                timing: { delay: 0, duration: 2000 },
+                fadeIn: 300,
+                fadeOut: 500,
+              }),
+              parallel(
+                shake({ intensity: 15, frequency: 50, timing: { delay: 0, duration: 1500 } }),
+                flash({ color: "#ffd700", opacity: 0.6, count: 8, timing: { delay: 0, duration: 1500 } }),
+              ),
+              textOverlay("ボタンを押せ!", {
+                font: "bold 48px sans-serif",
+                color: "#ffd700",
+                timing: { delay: 0, duration: 3000 },
+                fadeIn: 100,
+                fadeOut: 0,
+              }),
+            ),
+          ],
+          requireConfirm: true,
+          confirmReadyAt: 5500,
+        },
+      ],
+    },
+    {
+      id: "normal-hazure",
+      condition: { outcome: "hazure", isReach: false },
+      priority: 0,
+    },
+  ],
+};
+
+// ─── Scenario RNG adapter ───
+
+function createScenarioRng(lotteryRng: import("@pachinko/lottery").Rng): ScenarioRng {
+  return { next: () => lotteryRng.next() };
+}
+
+// ─── Color expectation display ───
+
+const COLOR_DISPLAY_MAP: Record<string, { label: string; css: string }> = {
+  rainbow: { label: "虹", css: "conic-gradient(#f00, #ff0, #0f0, #0ff, #f0f, #f00)" },
+  gold: { label: "金", css: "#ffd700" },
+  red: { label: "赤", css: "#ff4444" },
+  green: { label: "緑", css: "#44ff88" },
+  blue: { label: "青", css: "#4488ff" },
+  white: { label: "白", css: "#ffffff" },
+};
+
+function renderColorExpectations(): void {
+  const expectations = computeColorExpectations(scenarioConfig, {
+    oatariRate: 1 / 10,       // Demo machine: 1/10 in normal mode
+    hazureReachRate: 0.15,    // Demo machine: 15% reach rate
+  });
+
+  colorLegendEl.innerHTML = "";
+
+  for (const entry of expectations) {
+    const info = COLOR_DISPLAY_MAP[entry.color] ?? { label: entry.color, css: "#888" };
+    const pct = (entry.expectation * 100).toFixed(1);
+    const barColor = info.css.startsWith("conic") ? "#ff44ff" : info.css;
+
+    const row = document.createElement("div");
+    row.className = "color-legend-row";
+    row.innerHTML = `
+      <span class="color-legend-circle" style="background: ${info.css};"></span>
+      <span class="color-legend-name">${info.label}</span>
+      <span class="color-legend-bar-track">
+        <span class="color-legend-bar-fill" style="width: ${entry.expectation * 100}%; background: ${barColor};"></span>
+      </span>
+      <span class="color-legend-pct">${pct}%</span>
+    `;
+    colorLegendEl.appendChild(row);
+  }
+}
+
+renderColorExpectations();
+
 // ─── State ───
 
 const rng = createRng({ value: Date.now() });
@@ -395,21 +647,53 @@ async function init(): Promise<void> {
     hideConfirmButton();
   });
 
-  renderer.onComplete(() => {
-    spinning = false;
-    btnSpin.disabled = false;
-    hideConfirmButton();
+  // ─── Reserve display ───
+  const reserveDisplay = createReserveDisplay(reserveCanvas, {
+    position: { x: 24, y: 20 },
+    circleRadius: 10,
+    gap: 10,
+    colorMap: {
+      white: "#ffffff",
+      blue: "#4488ff",
+      green: "#44ff88",
+      red: "#ff4444",
+      gold: "#ffd700",
+      rainbow: (ctx2, x, y, r, time) => {
+        const gradient = ctx2.createConicGradient(time * 0.002, x, y);
+        gradient.addColorStop(0, "#ff0000");
+        gradient.addColorStop(0.2, "#ffff00");
+        gradient.addColorStop(0.4, "#00ff00");
+        gradient.addColorStop(0.6, "#00ffff");
+        gradient.addColorStop(0.8, "#ff00ff");
+        gradient.addColorStop(1, "#ff0000");
+        ctx2.fillStyle = gradient;
+        ctx2.beginPath();
+        ctx2.arc(x, y, r, 0, Math.PI * 2);
+        ctx2.fill();
+        ctx2.strokeStyle = "rgba(255, 255, 255, 0.6)";
+        ctx2.lineWidth = 1;
+        ctx2.stroke();
+      },
+    },
   });
 
-  function doSpin(): void {
-    if (spinning) return;
-    spinning = true;
-    btnSpin.disabled = true;
+  // ─── Scenario RNG ───
+  const scenarioRng = createScenarioRng(rng);
 
-    const result = draw(machine, gameState, rng);
+  // ─── Spin with DrawResult (used by both direct spin and reserve) ───
+  function doSpinWithResult(
+    result: import("@pachinko/lottery").DrawResult,
+    scenario?: PresentationScenario,
+    entry?: ReserveEntry,
+  ): void {
+    spinning = true;
+    btnSpin.disabled = false; // Allow adding reserves while spinning
+
+    // Show spinning entry in active slot
+    reserveDisplay.setActive(entry ?? null);
+
     gameState = result.nextState;
 
-    // Track in session tracker
     sessionTracker.recordSpin({
       outcome: result.outcome,
       bonusType: result.bonusType,
@@ -428,12 +712,86 @@ async function init(): Promise<void> {
       gameMode: result.previousState.mode,
       consecutiveBonuses: result.previousState.consecutiveBonuses,
     };
-    effectsEngine.start(effectInput);
+    effectsEngine.start(effectInput, scenario);
     bgEngine.start(effectInput);
     renderer.spin(renderInput);
     bgEngine.setMode(result.nextState.mode);
     updateModeBanner(result.nextState);
     updateCharts();
+  }
+
+  // ─── Reserve orchestrator ───
+  const orchestrator = createReserveOrchestrator({
+    machine,
+    rng,
+    maxReserve: 4,
+    autoSpinDelay: 500,
+    preReading: {
+      defaultColor: "white",
+      rules: [
+        { color: "rainbow", probability: 0.5, reliability: 0.95,
+          condition: { outcome: "oatari" } },
+        { color: "gold", probability: 0.3, reliability: 0.9,
+          condition: { outcome: "oatari" } },
+        { color: "red", probability: 0.5, reliability: 0.7,
+          condition: { outcome: "oatari" } },
+        { color: "green", probability: 0.3, reliability: 0.8,
+          condition: { isReach: true } },
+        { color: "blue", probability: 0.1 },
+      ],
+    },
+    resolveScenario: (drawResult) => {
+      const input = {
+        outcome: drawResult.outcome,
+        reels: drawResult.reels,
+        isReach: drawResult.isReach,
+        bonusType: drawResult.bonusType,
+        gameMode: drawResult.previousState.mode,
+        consecutiveBonuses: drawResult.previousState.consecutiveBonuses,
+      };
+      return resolveScenario(scenarioConfig, input, scenarioRng);
+    },
+    onSpin: (entry: ReserveEntry) => {
+      doSpinWithResult(entry.drawResult, entry.scenario as PresentationScenario | undefined, entry);
+    },
+    onQueueChange: (queue) => {
+      reserveDisplay.update(queue);
+    },
+  });
+
+  renderer.onComplete(() => {
+    spinning = false;
+    btnSpin.disabled = false;
+    hideConfirmButton();
+    reserveDisplay.setActive(null);
+    orchestrator.notifySpinComplete();
+  });
+
+  function doSpin(): void {
+    if (spinning) {
+      // Already spinning — add to reserve queue
+      orchestrator.request(gameState);
+      return;
+    }
+    spinning = true;
+    btnSpin.disabled = false; // Allow adding reserves
+
+    const result = draw(machine, gameState, rng);
+    const scenario = resolveScenario(scenarioConfig, {
+      outcome: result.outcome,
+      reels: result.reels,
+      isReach: result.isReach,
+      bonusType: result.bonusType,
+      gameMode: result.previousState.mode,
+      consecutiveBonuses: result.previousState.consecutiveBonuses,
+    }, scenarioRng);
+    const directEntry: ReserveEntry = {
+      id: Date.now(),
+      drawResult: result,
+      color: scenario.color,
+      scenario,
+    };
+    doSpinWithResult(result, scenario, directEntry);
   }
 
   btnSpin.addEventListener("click", doSpin);
@@ -457,7 +815,7 @@ async function init(): Promise<void> {
       e.preventDefault();
       if (effectsEngine.isInReachPresentation()) {
         effectsEngine.confirmReachPresentation();
-      } else if (!spinning) {
+      } else {
         doSpin();
       }
     }

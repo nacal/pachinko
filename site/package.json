@@ -11,7 +11,8 @@
     "@pachinko/lottery": "workspace:*",
     "@pachinko/rendering": "workspace:*",
     "@pachinko/effects": "workspace:*",
-    "@pachinko/tracker": "workspace:*"
+    "@pachinko/tracker": "workspace:*",
+    "@pachinko/reserve": "workspace:*"
   },
   "devDependencies": {
     "vite": "^6.0.0",
