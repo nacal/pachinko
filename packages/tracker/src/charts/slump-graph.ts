@@ -1,0 +1,147 @@
+import type { BallDataPoint, SlumpGraphOptions, ChartStyle } from "../types.js";
+import { resolveChartStyle, drawBackground, drawGridLines, drawZeroLine, drawAxisLabel } from "../chart-utils.js";
+
+const PADDING = { top: 20, right: 20, bottom: 40, left: 60 };
+
+export function renderSlumpGraph(
+  ctx: CanvasRenderingContext2D,
+  width: number,
+  height: number,
+  data: readonly BallDataPoint[],
+  options?: SlumpGraphOptions,
+): void {
+  const style = resolveChartStyle(options?.style);
+  const showGrid = options?.showGrid ?? true;
+  const showZero = options?.showZeroLine ?? true;
+
+  drawBackground(ctx, width, height, style);
+
+  if (data.length < 2) {
+    drawNoData(ctx, width, height, style);
+    return;
+  }
+
+  const chartLeft = PADDING.left;
+  const chartTop = PADDING.top;
+  const chartWidth = width - PADDING.left - PADDING.right;
+  const chartHeight = height - PADDING.top - PADDING.bottom;
+
+  // Compute ranges
+  const maxSpin = data[data.length - 1]!.spinNumber;
+  const minSpin = data[0]!.spinNumber;
+  let minBalls = 0;
+  let maxBalls = 0;
+  for (const point of data) {
+    if (point.netBalls < minBalls) minBalls = point.netBalls;
+    if (point.netBalls > maxBalls) maxBalls = point.netBalls;
+  }
+
+  // Add padding to Y range
+  const yRange = Math.max(maxBalls - minBalls, 100);
+  const yPad = yRange * 0.1;
+  const yMin = minBalls - yPad;
+  const yMax = maxBalls + yPad;
+  const spinRange = Math.max(maxSpin - minSpin, 1);
+
+  function toX(spin: number): number {
+    return chartLeft + ((spin - minSpin) / spinRange) * chartWidth;
+  }
+
+  function toY(balls: number): number {
+    return chartTop + chartHeight - ((balls - yMin) / (yMax - yMin)) * chartHeight;
+  }
+
+  // Grid
+  if (showGrid) {
+    drawGridLines(ctx, chartLeft, chartTop, chartWidth, chartHeight, 5, 5, style);
+  }
+
+  // Zero line
+  if (showZero && yMin < 0 && yMax > 0) {
+    drawZeroLine(ctx, chartLeft, toY(0), chartWidth, style);
+  }
+
+  // Draw filled area under/over zero
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(chartLeft, chartTop, chartWidth, chartHeight);
+  ctx.clip();
+
+  // Positive fill
+  ctx.beginPath();
+  ctx.moveTo(toX(data[0]!.spinNumber), toY(0));
+  for (const point of data) {
+    const y = Math.min(toY(point.netBalls), toY(0));
+    ctx.lineTo(toX(point.spinNumber), y);
+  }
+  ctx.lineTo(toX(data[data.length - 1]!.spinNumber), toY(0));
+  ctx.closePath();
+  ctx.fillStyle = style.positiveColor + "33";
+  ctx.fill();
+
+  // Negative fill
+  ctx.beginPath();
+  ctx.moveTo(toX(data[0]!.spinNumber), toY(0));
+  for (const point of data) {
+    const y = Math.max(toY(point.netBalls), toY(0));
+    ctx.lineTo(toX(point.spinNumber), y);
+  }
+  ctx.lineTo(toX(data[data.length - 1]!.spinNumber), toY(0));
+  ctx.closePath();
+  ctx.fillStyle = style.negativeColor + "33";
+  ctx.fill();
+
+  // Draw main line
+  ctx.beginPath();
+  ctx.moveTo(toX(data[0]!.spinNumber), toY(data[0]!.netBalls));
+  for (let i = 1; i < data.length; i++) {
+    ctx.lineTo(toX(data[i]!.spinNumber), toY(data[i]!.netBalls));
+  }
+  ctx.strokeStyle = style.lineColor;
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  ctx.restore();
+
+  // Axes border
+  ctx.save();
+  ctx.strokeStyle = style.axisColor;
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(chartLeft, chartTop);
+  ctx.lineTo(chartLeft, chartTop + chartHeight);
+  ctx.lineTo(chartLeft + chartWidth, chartTop + chartHeight);
+  ctx.stroke();
+  ctx.restore();
+
+  // X-axis labels
+  const xSteps = 5;
+  for (let i = 0; i <= xSteps; i++) {
+    const spin = Math.round(minSpin + (spinRange / xSteps) * i);
+    const x = toX(spin);
+    drawAxisLabel(ctx, String(spin), x, chartTop + chartHeight + 6, style);
+  }
+
+  // Y-axis labels
+  const ySteps = 5;
+  for (let i = 0; i <= ySteps; i++) {
+    const balls = Math.round(yMin + ((yMax - yMin) / ySteps) * i);
+    const y = toY(balls);
+    drawAxisLabel(ctx, String(balls), chartLeft - 6, y, style, "right", "middle");
+  }
+}
+
+function drawNoData(
+  ctx: CanvasRenderingContext2D,
+  width: number,
+  height: number,
+  style: ChartStyle,
+): void {
+  ctx.save();
+  ctx.fillStyle = style.textColor;
+  ctx.font = style.font;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText("No data", width / 2, height / 2);
+  ctx.restore();
+}

@@ -41,31 +41,18 @@
         <span class="mode-detail" id="mode-detail"></span>
       </div>
 
-      <div class="demo-info">
-        <h3>Result</h3>
-        <div class="stat">
-          <span class="stat-label">結果</span>
-          <span class="stat-value" id="stat-outcome">—</span>
+      <div class="demo-charts">
+        <div class="demo-chart-wrapper">
+          <h3>データランプ</h3>
+          <canvas id="stats-panel" width="480" height="220"></canvas>
         </div>
-        <div class="stat">
-          <span class="stat-label">図柄</span>
-          <span class="stat-value" id="stat-reels">— — —</span>
+        <div class="demo-chart-wrapper">
+          <h3>スランプグラフ</h3>
+          <canvas id="slump-graph" width="480" height="240"></canvas>
         </div>
-        <div class="stat">
-          <span class="stat-label">リーチ</span>
-          <span class="stat-value" id="stat-reach">—</span>
-        </div>
-        <div class="stat">
-          <span class="stat-label">ボーナス</span>
-          <span class="stat-value" id="stat-bonus">—</span>
-        </div>
-        <div class="stat">
-          <span class="stat-label">回転数</span>
-          <span class="stat-value" id="stat-spins">0</span>
-        </div>
-        <div class="stat">
-          <span class="stat-label">連チャン</span>
-          <span class="stat-value" id="stat-consecutive">0</span>
+        <div class="demo-chart-wrapper">
+          <h3>大当たり履歴</h3>
+          <canvas id="hit-history" width="480" height="240"></canvas>
         </div>
       </div>
     </div>

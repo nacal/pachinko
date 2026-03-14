@@ -10,7 +10,8 @@
   "dependencies": {
     "@pachinko/lottery": "workspace:*",
     "@pachinko/rendering": "workspace:*",
-    "@pachinko/effects": "workspace:*"
+    "@pachinko/effects": "workspace:*",
+    "@pachinko/tracker": "workspace:*"
   },
   "devDependencies": {
     "vite": "^6.0.0",

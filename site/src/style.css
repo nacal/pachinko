@@ -286,6 +286,35 @@ section h2 {
 .outcome-koatari { color: var(--gold); }
 .outcome-hazure { color: var(--text-muted); }
 
+/* ─── Charts ─── */
+
+.demo-charts {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: 100%;
+  max-width: 520px;
+}
+
+.demo-chart-wrapper {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+}
+
+.demo-chart-wrapper h3 {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin-bottom: 0.75rem;
+}
+
+.demo-chart-wrapper canvas {
+  display: block;
+  width: 100%;
+  border-radius: 6px;
+}
+
 /* ─── Mode banner ─── */
 
 .demo-mode-banner {

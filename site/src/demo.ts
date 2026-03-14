@@ -5,7 +5,7 @@ import {
   draw,
   createState,
 } from "@pachinko/lottery";
-import type { GameState, DrawResult } from "@pachinko/lottery";
+import type { GameState } from "@pachinko/lottery";
 import { createInlineReelRenderer, DEFAULT_TIMING } from "@pachinko/rendering";
 import type { DrawResultInput, SymbolSpec } from "@pachinko/rendering";
 import {
@@ -19,6 +19,13 @@ import {
   parallel,
 } from "@pachinko/effects";
 import type { EffectRule } from "@pachinko/effects";
+import {
+  createSessionTracker,
+  renderStatsPanel,
+  renderSlumpGraph,
+  renderHitHistory,
+} from "@pachinko/tracker";
+import type { TrackerConfig } from "@pachinko/tracker";
 
 // ─── Machine definition (demo: high hit rate for fun) ───
 
@@ -106,15 +113,12 @@ const canvas = document.getElementById("reel-canvas") as HTMLCanvasElement;
 const effectsCanvas = document.getElementById("effects-canvas") as HTMLCanvasElement;
 const btnSpin = document.getElementById("btn-spin") as HTMLButtonElement;
 const btnSkip = document.getElementById("btn-skip") as HTMLButtonElement;
-const statOutcome = document.getElementById("stat-outcome")!;
-const statReels = document.getElementById("stat-reels")!;
-const statReach = document.getElementById("stat-reach")!;
-const statBonus = document.getElementById("stat-bonus")!;
-const statSpins = document.getElementById("stat-spins")!;
-const statConsecutive = document.getElementById("stat-consecutive")!;
 const modeBanner = document.getElementById("mode-banner")!;
 const modeLabel = document.getElementById("mode-label")!;
 const modeDetail = document.getElementById("mode-detail")!;
+const statsPanelCanvas = document.getElementById("stats-panel") as HTMLCanvasElement;
+const slumpGraphCanvas = document.getElementById("slump-graph") as HTMLCanvasElement;
+const hitHistoryCanvas = document.getElementById("hit-history") as HTMLCanvasElement;
 
 // ─── UI update ───
 
@@ -137,22 +141,43 @@ function updateModeBanner(state: GameState): void {
   }
 }
 
-function updateStats(result: DrawResult): void {
-  const outcomeLabel =
-    result.outcome === "oatari" ? "大当り" :
-    result.outcome === "koatari" ? "小当り" : "ハズレ";
-  const outcomeClass = `outcome-${result.outcome}`;
+// ─── Tracker config ───
 
-  statOutcome.textContent = outcomeLabel;
-  statOutcome.className = `stat-value ${outcomeClass}`;
+const trackerConfig: TrackerConfig = {
+  ballsPerSpin: 4,
+  ballsPerRound: {
+    kakuhen16R: 100,
+    tsujou: 100,
+  },
+  specProbability: 10, // Demo uses 1/10
+  sampleInterval: 1, // Record every spin for demo
+};
 
-  statReels.textContent = `${result.reels.left.label}  ${result.reels.center.label}  ${result.reels.right.label}`;
-  statReach.textContent = result.isReach ? "あり" : "なし";
-  statBonus.textContent = result.bonusType ? result.bonusType.label : "—";
-  statSpins.textContent = String(totalSpins);
-  statConsecutive.textContent = String(result.nextState.consecutiveBonuses);
+const chartBonusColors = {
+  kakuhen16R: "#ff4444",
+  tsujou: "#ffaa00",
+};
 
-  updateModeBanner(result.nextState);
+function updateCharts(): void {
+  const snap = sessionTracker.snapshot();
+  const stats = sessionTracker.stats();
+
+  const spCtx = statsPanelCanvas.getContext("2d")!;
+  renderStatsPanel(spCtx, statsPanelCanvas.width, statsPanelCanvas.height, stats, {
+    machineName: "Demo Machine",
+    style: { bonusColors: chartBonusColors },
+  });
+
+  const sgCtx = slumpGraphCanvas.getContext("2d")!;
+  renderSlumpGraph(sgCtx, slumpGraphCanvas.width, slumpGraphCanvas.height, snap.ballHistory, {
+    style: { bonusColors: chartBonusColors },
+  });
+
+  const hhCtx = hitHistoryCanvas.getContext("2d")!;
+  renderHitHistory(hhCtx, hitHistoryCanvas.width, hitHistoryCanvas.height, snap.hitHistory, {
+    maxBars: 15,
+    style: { bonusColors: chartBonusColors },
+  });
 }
 
 // ─── Effect rules ───
@@ -221,8 +246,8 @@ const effectRules: EffectRule[] = [
 
 const rng = createRng({ value: Date.now() });
 let gameState: GameState = createState();
-let totalSpins = 0;
 let spinning = false;
+const sessionTracker = createSessionTracker(trackerConfig);
 
 // ─── Init ───
 
@@ -253,10 +278,16 @@ async function init(): Promise<void> {
     if (spinning) return;
     spinning = true;
     btnSpin.disabled = true;
-    totalSpins++;
 
     const result = draw(machine, gameState, rng);
     gameState = result.nextState;
+
+    // Track in session tracker
+    sessionTracker.recordSpin({
+      outcome: result.outcome,
+      bonusType: result.bonusType,
+      mode: result.previousState.mode,
+    });
 
     const renderInput: DrawResultInput = {
       outcome: result.outcome,
@@ -271,7 +302,8 @@ async function init(): Promise<void> {
       consecutiveBonuses: result.previousState.consecutiveBonuses,
     });
     renderer.spin(renderInput);
-    updateStats(result);
+    updateModeBanner(result.nextState);
+    updateCharts();
   }
 
   btnSpin.addEventListener("click", doSpin);
@@ -290,6 +322,7 @@ async function init(): Promise<void> {
   });
 
   btnSpin.disabled = false;
+  updateCharts();
 }
 
 // Disable spin until images loaded
