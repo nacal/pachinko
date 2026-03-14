@@ -5,7 +5,6 @@ import {
   drawZeroLine,
   drawAxes,
   drawAxisLabel,
-  drawNoData,
   drawSegmentDigit,
   drawSegmentNumber,
   drawCircle,
@@ -87,14 +86,6 @@ describe("drawAxisLabel", () => {
     const ctx = createMockCtx();
     drawAxisLabel(ctx, "100", 50, 200, style);
     expect(ctx.fillText).toHaveBeenCalledWith("100", 50, 200);
-  });
-});
-
-describe("drawNoData", () => {
-  it("draws centered message", () => {
-    const ctx = createMockCtx();
-    drawNoData(ctx, 400, 200, style);
-    expect(ctx.fillText).toHaveBeenCalledWith("No data", 200, 100);
   });
 });
 

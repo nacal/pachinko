@@ -47,7 +47,6 @@ import {
   drawGridLines,
   drawZeroLine,
   drawAxisLabel,
-  drawNoData,
 } from "@pachinko/ui";
 
 const style = resolveChartStyle({ backgroundColor: "#0a0a1a" });
@@ -138,10 +137,6 @@ Draw a dashed horizontal zero line.
 #### `drawAxisLabel(ctx, text, x, y, style, align?, baseline?)`
 
 Draw a text label at the given position using `style.labelFont`.
-
-#### `drawNoData(ctx, width, height, style)`
-
-Draw a centered "No data" message.
 
 ### Indicators
 

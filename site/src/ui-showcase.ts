@@ -5,7 +5,6 @@ import {
   drawAxes,
   drawZeroLine,
   drawAxisLabel,
-  drawNoData,
   drawSegmentDigit,
   drawSegmentNumber,
   drawCircle,
@@ -259,16 +258,6 @@ function renderCircleDemo(): void {
   drawEmptySlot(ctx, x, y, r);
 }
 
-// ─── No Data ───
-
-function renderNoDataDemo(): void {
-  const ctx = getCtx("demo-nodata");
-  if (!ctx) return;
-
-  drawBackground(ctx, 460, 100, style);
-  drawNoData(ctx, 460, 100, style);
-}
-
 // ─── Combined Stats Panel ───
 
 function renderCombinedDemo(): void {
@@ -409,5 +398,4 @@ renderSegmentDemo();
 renderChartDemo();
 renderBarDemo();
 renderCircleDemo();
-renderNoDataDemo();
 renderCombinedDemo();

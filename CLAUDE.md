@@ -130,7 +130,6 @@ packages/ui/src/
 ├── background.ts      # 背景塗りつぶし
 ├── grid.ts            # グリッド線・ゼロライン
 ├── axes.ts            # L字軸・軸ラベル
-├── text.ts            # "No data" メッセージ
 ├── segment-display.ts # 7セグメント数字描画
 ├── circle.ts          # 円形インジケーター・空スロット
 └── bar.ts             # 棒グラフ描画

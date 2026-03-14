@@ -3,7 +3,6 @@ export { DEFAULT_CHART_STYLE, resolveChartStyle, getBonusColor } from "./style";
 export { drawBackground } from "./background";
 export { drawGridLines, drawZeroLine } from "./grid";
 export { drawAxes, drawAxisLabel } from "./axes";
-export { drawNoData } from "./text";
 export { drawSegmentDigit, drawSegmentNumber } from "./segment-display";
 export { drawCircle, drawEmptySlot } from "./circle";
 export { drawBar } from "./bar";

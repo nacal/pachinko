@@ -47,7 +47,6 @@ import {
   drawGridLines,
   drawZeroLine,
   drawAxisLabel,
-  drawNoData,
 } from "@pachinko/ui";
 
 const style = resolveChartStyle({ backgroundColor: "#0a0a1a" });
@@ -138,10 +137,6 @@ L字型のチャート軸（縦+横）を描画。
 #### `drawAxisLabel(ctx, text, x, y, style, align?, baseline?)`
 
 `style.labelFont` を使用してテキストラベルを描画。
-
-#### `drawNoData(ctx, width, height, style)`
-
-中央配置の "No data" メッセージを描画。
 
 ### インジケーター
 
