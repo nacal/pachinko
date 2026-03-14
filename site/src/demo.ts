@@ -720,9 +720,6 @@ async function init(): Promise<void> {
     symbolStrip,
     timing: {
       ...DEFAULT_TIMING,
-      baseSpinDuration: 800,
-      stopInterval: 400,
-      reachSlowdownDuration: 1800,
       enableReachPresentation: true,
     },
     style: {

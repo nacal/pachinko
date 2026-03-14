@@ -193,7 +193,7 @@ describe("pseudo-consecutive (擬似連)", () => {
     let time = 0;
     const phases: string[] = [state.phase];
 
-    for (let i = 0; i < 200; i++) {
+    for (let i = 0; i < 500; i++) {
       time += 50;
       const next = tick(state, time, timing);
       if (next.phase !== state.phase) {
@@ -221,7 +221,7 @@ describe("pseudo-consecutive (擬似連)", () => {
     let time = 0;
     const phases: string[] = [state.phase];
 
-    for (let i = 0; i < 300; i++) {
+    for (let i = 0; i < 800; i++) {
       time += 50;
       const next = tick(state, time, timing);
       if (next.phase !== state.phase) {
@@ -284,7 +284,7 @@ describe("pseudo-consecutive (擬似連)", () => {
     let state = startSpin(pseudoSingleResult, 0);
     let time = 0;
 
-    for (let i = 0; i < 200; i++) {
+    for (let i = 0; i < 500; i++) {
       time += 50;
       state = tick(state, time, timing);
       if (state.phase === "stopping-center") break;

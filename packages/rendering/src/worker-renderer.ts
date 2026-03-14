@@ -25,6 +25,9 @@ interface RendererState {
   animState: ReelAnimationState;
   animFrameId: number | null;
   postMessage: (msg: WorkerOutMessage) => void;
+  scrollOffsets: number[];
+  stopStartOffsets: number[];
+  lastTime: number;
 }
 
 function computeReelSpeed(
@@ -33,7 +36,7 @@ function computeReelSpeed(
   elapsed: number,
   timing: TimingConfig,
 ): number {
-  const { phase, isReach } = state;
+  const { phase } = state;
 
   switch (phase) {
     case "idle":
@@ -48,22 +51,13 @@ function computeReelSpeed(
       return easeInQuad(spinUp);
     }
 
-    case "stopping-left": {
-      if (reelIndex === 0) {
-        const p = progress(elapsed, timing.stopInterval);
-        return 1 - easeOutQuad(p);
-      }
-      return 1;
-    }
-
-    case "stopping-right": {
+    case "stopping-left":
+      return reelIndex === 0 ? 0 : 1;
+    case "stopping-right":
       if (reelIndex === 0) return 0;
-      if (reelIndex === 2) {
-        const p = progress(elapsed, timing.stopInterval);
-        return 1 - easeOutQuad(p);
-      }
-      return 1;
-    }
+      return reelIndex === 2 ? 0 : 1;
+    case "stopping-center":
+      return 0;
 
     case "pseudo-stop":
       return 0;
@@ -73,17 +67,32 @@ function computeReelSpeed(
       return easeInQuad(p);
     }
 
-    case "stopping-center": {
-      if (reelIndex !== 1) return 0;
-      if (isReach && timing.enableReachPresentation) return 0;
-      const duration = isReach ? timing.reachSlowdownDuration : timing.stopInterval;
-      const p = progress(elapsed, duration);
-      return isReach ? 1 - easeInOutSine(p) : 1 - easeOutQuad(p);
-    }
-
     default:
       return 0;
   }
+}
+
+function computeStopProgress(
+  reelIndex: number,
+  state: ReelAnimationState,
+  elapsed: number,
+  timing: TimingConfig,
+): number {
+  const { phase, isReach } = state;
+
+  if (phase === "stopping-left" && reelIndex === 0) {
+    return easeOutQuad(progress(elapsed, timing.stopInterval));
+  }
+  if (phase === "stopping-right" && reelIndex === 2) {
+    return easeOutQuad(progress(elapsed, timing.stopInterval));
+  }
+  if (phase === "stopping-center" && reelIndex === 1) {
+    if (isReach && timing.enableReachPresentation) return -1;
+    const duration = isReach ? timing.reachSlowdownDuration : timing.stopInterval;
+    const p = progress(elapsed, duration);
+    return isReach ? easeInOutSine(p) : easeOutQuad(p);
+  }
+  return -1;
 }
 
 function isReelStopped(
@@ -103,6 +112,14 @@ function isReelStopped(
   }
 }
 
+function getDisplayReels(animState: ReelAnimationState) {
+  const inPseudoCycle = animState.pseudoRemaining > 0;
+  const cycleIndex = animState.pseudoCount - animState.pseudoRemaining;
+  return inPseudoCycle && animState.pseudoReels[cycleIndex]
+    ? animState.pseudoReels[cycleIndex]!
+    : animState.result!.reels;
+}
+
 function renderFrame(rs: RendererState, now: number): void {
   const { ctx, config, timing, style, width, height, animState } = rs;
   const layouts = computeReelLayouts(width, height);
@@ -115,22 +132,40 @@ function renderFrame(rs: RendererState, now: number): void {
 
   for (let i = 0; i < 3; i++) {
     const layout = layouts[i]!;
-    const speed = computeReelSpeed(i, animState, elapsed, timing);
+    const stopProg = computeStopProgress(i, animState, elapsed, timing);
 
-    if (animState.phase === "result" || (speed === 0 && animState.result)) {
-      const inPseudoCycle = animState.pseudoRemaining > 0;
-      const cycleIndex = animState.pseudoCount - animState.pseudoRemaining;
-      const displayReels = inPseudoCycle && animState.pseudoReels[cycleIndex]
-        ? animState.pseudoReels[cycleIndex]!
-        : animState.result!.reels;
+    if (animState.phase === "result") {
+      const displayReels = getDisplayReels(animState);
       const target = displayReels[reelKeys[i]!];
       const strip = createReelStrip(symbols, target);
       const targetOffset = computeTargetOffset(strip, VISIBLE_SYMBOL_COUNT);
       const visible = getVisibleSymbols(strip, targetOffset, VISIBLE_SYMBOL_COUNT);
       drawReel(ctx, layout, visible, 0, style);
+    } else if (stopProg >= 0 && animState.result) {
+      const displayReels = getDisplayReels(animState);
+      const target = displayReels[reelKeys[i]!];
+      const strip = createReelStrip(symbols, target);
+      const targetOffset = computeTargetOffset(strip, VISIBLE_SYMBOL_COUNT);
+      const len = symbols.length;
+      const startPos = ((rs.stopStartOffsets[i]! % len) + len) % len;
+      let forwardDist = startPos - targetOffset;
+      if (forwardDist <= 0) forwardDist += len;
+      forwardDist += len * 2;
+      const currentOffset = ((startPos - forwardDist * stopProg) % len + len) % len;
+      const visible = getVisibleSymbols(strip, currentOffset, VISIBLE_SYMBOL_COUNT + 1);
+      const subOffset = currentOffset % 1;
+      drawReel(ctx, layout, visible, subOffset, style);
+      rs.scrollOffsets[i] = currentOffset;
+    } else if (computeReelSpeed(i, animState, elapsed, timing) === 0 && animState.result) {
+      const displayReels = getDisplayReels(animState);
+      const target = displayReels[reelKeys[i]!];
+      const strip = createReelStrip(symbols, target);
+      const targetOffset = computeTargetOffset(strip, VISIBLE_SYMBOL_COUNT);
+      rs.scrollOffsets[i] = targetOffset;
+      const visible = getVisibleSymbols(strip, targetOffset, VISIBLE_SYMBOL_COUNT);
+      drawReel(ctx, layout, visible, 0, style);
     } else {
-      const scrollSpeed = speed * 0.3;
-      const scrollOffset = (-(now * scrollSpeed) / 16 % symbols.length + symbols.length) % symbols.length;
+      const scrollOffset = ((rs.scrollOffsets[i]! % symbols.length) + symbols.length) % symbols.length;
       const visible = getVisibleSymbols(
         { symbols, targetIndex: 0 },
         scrollOffset,
@@ -149,10 +184,30 @@ function renderFrame(rs: RendererState, now: number): void {
 
 function animationLoop(rs: RendererState): void {
   const loop = (now: number): void => {
+    // Integrate scroll offsets from speed
+    const dt = rs.lastTime > 0 ? (now - rs.lastTime) / 16 : 0;
+    rs.lastTime = now;
+    const elapsed = phaseElapsed(rs.animState, now);
+    for (let i = 0; i < 3; i++) {
+      const speed = computeReelSpeed(i, rs.animState, elapsed, rs.timing);
+      rs.scrollOffsets[i] -= speed * 0.3 * dt;
+    }
+
     const prevPhase = rs.animState.phase;
     rs.animState = tick(rs.animState, now, rs.timing);
 
     if (rs.animState.phase !== prevPhase) {
+      // Capture scroll offsets when reels enter their stop animation
+      if (rs.animState.phase === "stopping-left") {
+        rs.stopStartOffsets[0] = rs.scrollOffsets[0]!;
+      }
+      if (rs.animState.phase === "stopping-right") {
+        rs.stopStartOffsets[2] = rs.scrollOffsets[2]!;
+      }
+      if (rs.animState.phase === "stopping-center") {
+        rs.stopStartOffsets[1] = rs.scrollOffsets[1]!;
+      }
+
       rs.postMessage({ type: "phase-change", phase: rs.animState.phase });
 
       if (rs.animState.result) {
@@ -212,6 +267,9 @@ export function createWorkerRenderer(
     animState: createIdleState(),
     animFrameId: null,
     postMessage,
+    scrollOffsets: [0, 0, 0],
+    stopStartOffsets: [0, 0, 0],
+    lastTime: 0,
   };
 
   renderFrame(rs, 0);
@@ -224,6 +282,9 @@ export function createWorkerRenderer(
             cancelAnimationFrame(rs.animFrameId);
           }
           rs.animState = startSpin(msg.result, performance.now(), rs.config.symbolStrip);
+          rs.scrollOffsets = [0, 0, 0];
+          rs.stopStartOffsets = [0, 0, 0];
+          rs.lastTime = 0;
           rs.postMessage({ type: "phase-change", phase: "spinning" });
           animationLoop(rs);
           break;

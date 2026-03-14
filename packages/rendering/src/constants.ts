@@ -3,7 +3,7 @@ import type { TimingConfig, StyleConfig, ReelLayout } from "./types";
 export const DEFAULT_TIMING: TimingConfig = {
   spinUpDuration: 300,
   baseSpinDuration: 1000,
-  stopInterval: 500,
+  stopInterval: 1000,
   reachSlowdownDuration: 2000,
   stopBounceDuration: 150,
   enableReachPresentation: false,
