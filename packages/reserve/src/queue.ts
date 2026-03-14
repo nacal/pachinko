@@ -33,5 +33,10 @@ export function createReserveQueue(maxSize: number = 4): ReserveQueue {
     clear(): void {
       items.length = 0;
     },
+
+    patchEntry(index: number, updater: (entry: ReserveEntry) => ReserveEntry): void {
+      if (index < 0 || index >= items.length) return;
+      items[index] = updater(items[index]!);
+    },
   };
 }

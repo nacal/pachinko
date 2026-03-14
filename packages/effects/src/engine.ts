@@ -2,6 +2,7 @@ import type {
   DrawResultInput,
   EffectContext,
   EffectPhase,
+  EffectPrimitive,
   EffectRule,
   EffectsEngine,
   EffectsEngineConfig,
@@ -36,6 +37,7 @@ export function createEffectsEngine(
   const reelStops: Partial<Record<ReelPosition, SymbolSpec>> = {};
 
   let activePhaseState: PhaseState | null = null;
+  let activeAmbientStates: PhaseState[] = [];
   let currentShakeOffset: ShakeOffset = { x: 0, y: 0 };
   let destroyed = false;
 
@@ -138,6 +140,67 @@ export function createEffectsEngine(
     activePhaseState = { phase: "reach-presentation", timeline, startTime: now };
   }
 
+  function buildAmbientStates(phase: EffectPhase, now: number): void {
+    activeAmbientStates = [];
+    if (!currentScenario?.ambientEffects) return;
+
+    for (const ambient of currentScenario.ambientEffects) {
+      const matchesPhase =
+        ambient.phase === null ||
+        (Array.isArray(ambient.phase)
+          ? (ambient.phase as readonly EffectPhase[]).includes(phase)
+          : ambient.phase === phase);
+
+      if (!matchesPhase || ambient.effects.length === 0) continue;
+
+      const timeline = buildTimeline(ambient.effects);
+      activeAmbientStates.push({ phase, timeline, startTime: now });
+    }
+
+    // Sort by priority (lower priority renders first / behind)
+    if (currentScenario.ambientEffects.length > 1) {
+      const priorities = new Map(
+        currentScenario.ambientEffects.map((a, i) => [i, a.priority ?? 0]),
+      );
+      const indexedStates = activeAmbientStates.map((s, i) => ({ state: s, idx: i }));
+      indexedStates.sort((a, b) => (priorities.get(a.idx) ?? 0) - (priorities.get(b.idx) ?? 0));
+      activeAmbientStates = indexedStates.map((is) => is.state);
+    }
+
+    // Add telop as a custom effect ambient
+    if (currentScenario.telop) {
+      const telop = currentScenario.telop;
+      const telopEffect: EffectPrimitive = {
+        type: "custom",
+        timing: telop.timing,
+        render: (ctx2d, progress, w, h) => {
+          const direction = telop.direction ?? "right-to-left";
+          ctx2d.save();
+          ctx2d.font = telop.font ?? "bold 36px sans-serif";
+          ctx2d.fillStyle = telop.color ?? "#ffffff";
+          ctx2d.textBaseline = "middle";
+          const textWidth = ctx2d.measureText(telop.text).width;
+          let x: number;
+          let y: number;
+          if (direction === "right-to-left") {
+            x = w - (w + textWidth) * progress;
+            y = h * 0.15;
+          } else if (direction === "left-to-right") {
+            x = -textWidth + (w + textWidth) * progress;
+            y = h * 0.15;
+          } else {
+            x = (w - textWidth) / 2;
+            y = h + (0 - h - 40) * progress;
+          }
+          ctx2d.fillText(telop.text, x, y);
+          ctx2d.restore();
+        },
+      };
+      const timeline = buildTimeline([telopEffect]);
+      activeAmbientStates.push({ phase, timeline, startTime: now });
+    }
+  }
+
   function activatePhase(phase: EffectPhase, now: number): void {
     if (!drawResult) return;
     currentPhase = phase;
@@ -147,6 +210,9 @@ export function createEffectsEngine(
       activateReachPresentation(now);
       return;
     }
+
+    // Build ambient effect timelines for this phase
+    buildAmbientStates(phase, now);
 
     // ─── Scenario mode: use pre-determined phase effects ───
     if (currentScenario) {
@@ -181,6 +247,7 @@ export function createEffectsEngine(
     reelStops.center = undefined;
     reelStops.right = undefined;
     activePhaseState = null;
+    activeAmbientStates = [];
     currentPhase = null;
     currentShakeOffset = { x: 0, y: 0 };
     reachPresentationActive = false;
@@ -197,11 +264,31 @@ export function createEffectsEngine(
     reelStops[position] = symbol;
   }
 
+  function renderTimelineState(state: PhaseState, now: number): boolean {
+    const elapsed = now - state.startTime;
+    if (elapsed >= state.timeline.totalDuration) return true;
+
+    const active = getActiveEntries(state.timeline, elapsed);
+    for (const { entry, progress } of active) {
+      if (entry.effect.type === "shake") {
+        currentShakeOffset = computeShakeOffset(entry.effect, progress);
+      } else {
+        renderEffect(ctx, entry.effect, progress, width, height);
+      }
+    }
+    return false;
+  }
+
   function tick(now: number): void {
     if (destroyed) return;
 
     ctx.clearRect(0, 0, width, height);
     currentShakeOffset = { x: 0, y: 0 };
+
+    // Render ambient effects first (behind phase effects)
+    activeAmbientStates = activeAmbientStates.filter(
+      (state) => !renderTimelineState(state, now),
+    );
 
     if (!activePhaseState) return;
 
@@ -278,6 +365,7 @@ export function createEffectsEngine(
       userConfirmed = false;
     }
     activePhaseState = null;
+    activeAmbientStates = [];
     currentShakeOffset = { x: 0, y: 0 };
     ctx.clearRect(0, 0, width, height);
   }
@@ -290,6 +378,7 @@ export function createEffectsEngine(
   function destroy(): void {
     destroyed = true;
     activePhaseState = null;
+    activeAmbientStates = [];
     reachPresentationActive = false;
     completeCallbacks.length = 0;
     reachPresentationEndCallbacks.length = 0;

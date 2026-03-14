@@ -39,12 +39,33 @@ export function createReserveOrchestrator(
       const drawResult = draw(machine, drawState, rng);
       chainedState = drawResult.nextState;
 
-      const scenario = config.resolveScenario?.(drawResult);
+      const existingEntries = queue.entries();
+      const queuePosition = existingEntries.length;
+      const scenarioResult = config.resolveScenario?.(drawResult, {
+        queuePosition,
+        queueSize: queuePosition + 1,
+        existingEntries,
+      });
+
+      // Extract scenario and patches from result
+      const hasPatches = (r: unknown): r is { scenario: unknown; patches: unknown } =>
+        r !== null && typeof r === "object" && "scenario" in r! && "patches" in r!;
+      const scenario = hasPatches(scenarioResult) ? scenarioResult.scenario : scenarioResult;
+      const patches = hasPatches(scenarioResult) ? scenarioResult.patches : undefined;
 
       // If scenario provides color, use it; otherwise fall back to pre-reading rules
       const hasColor = (s: unknown): s is { color: string } =>
         s !== null && typeof s === "object" && "color" in s! && typeof (s as { color: string }).color === "string";
       const color = hasColor(scenario) ? scenario.color : assignColor(drawResult, preReading, rng);
+
+      // Apply patches to existing entries before enqueuing the new one
+      if (patches && config.applyScenarioPatches) {
+        const mutableEntries = [...existingEntries];
+        config.applyScenarioPatches(mutableEntries, patches);
+        for (let i = 0; i < mutableEntries.length; i++) {
+          queue.patchEntry(i, () => mutableEntries[i]!);
+        }
+      }
 
       const entry: ReserveEntry = {
         id: nextId++,

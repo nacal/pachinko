@@ -45,6 +45,19 @@ export type {
   ScenarioConfig,
   ColorExpectationRates,
   ColorExpectation,
+  AmbientEffect,
+  TelopDefinition,
+  ConsecutivePredictionStep,
+  ConsecutivePredictionPattern,
+  ZoneDefinition,
+  ConsecutivePredictionRule,
+  ZoneRule,
+  TelopRule,
+  GroupPredictionRule,
+  PreReadingScenarioConfig,
+  AmbientEffectPatch,
+  PreReadingScenarioResult,
+  QueueScenarioContext,
   ReelRendererLike,
   BackgroundRenderFn,
   BackgroundSource,
@@ -72,7 +85,7 @@ export {
 export { lerp, clamp, lerpColor, parseHexColor } from "./utils";
 
 // ─── Primitives ───
-export { flash, textOverlay, backgroundChange, shake, fade, imageOverlay, custom } from "./primitives";
+export { flash, textOverlay, backgroundChange, shake, fade, imageOverlay, vignette, custom } from "./primitives";
 export type {
   FlashOptions,
   TextOverlayOptions,
@@ -80,6 +93,7 @@ export type {
   ShakeOptions,
   FadeOptions,
   ImageOverlayOptions,
+  VignetteOptions,
   CustomEffectOptions,
 } from "./primitives";
 
@@ -106,6 +120,9 @@ export type { ParticleBgOptions, GradientBgOptions } from "./background-presets"
 
 // ─── Scenario ───
 export { resolveScenario, computeColorExpectations } from "./scenario";
+
+// ─── Pre-Reading Scenario ───
+export { resolvePreReadingScenario } from "./pre-reading-scenario";
 
 // ─── Adapter ───
 export { connectRenderer, connectBackgroundEngine } from "./adapter";

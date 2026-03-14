@@ -82,6 +82,8 @@ packages/effects/src/
 ├── timeline.ts        # タイムライン構築・tick
 ├── rule-evaluator.ts  # ルール条件評価
 ├── renderer.ts        # Canvas描画
+├── scenario.ts            # シナリオ選択 (resolveScenario, computeColorExpectations)
+├── pre-reading-scenario.ts # 先読みシナリオ (resolvePreReadingScenario)
 ├── engine.ts              # メインオーケストレーター
 ├── adapter.ts             # @pachinko/rendering連携
 ├── background-types.ts    # 背景レイヤー型定義

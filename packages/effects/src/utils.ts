@@ -14,12 +14,40 @@ export function parseHexColor(hex: string): { r: number; g: number; b: number } 
   return { r, g, b };
 }
 
+interface ParsedColor {
+  readonly r: number;
+  readonly g: number;
+  readonly b: number;
+  readonly a: number;
+}
+
+function parseColor(color: string): ParsedColor {
+  // rgba(r, g, b, a) or rgb(r, g, b)
+  const rgbaMatch = color.match(/rgba?\(\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)\s*(?:,\s*([\d.]+))?\s*\)/);
+  if (rgbaMatch) {
+    return {
+      r: parseFloat(rgbaMatch[1]!),
+      g: parseFloat(rgbaMatch[2]!),
+      b: parseFloat(rgbaMatch[3]!),
+      a: rgbaMatch[4] !== undefined ? parseFloat(rgbaMatch[4]) : 1,
+    };
+  }
+
+  // Hex color
+  const hex = parseHexColor(color);
+  return { ...hex, a: 1 };
+}
+
 export function lerpColor(from: string, to: string, t: number): string {
-  const f = parseHexColor(from);
-  const c = parseHexColor(to);
+  const f = parseColor(from);
+  const c = parseColor(to);
   const r = Math.round(lerp(f.r, c.r, t));
   const g = Math.round(lerp(f.g, c.g, t));
   const b = Math.round(lerp(f.b, c.b, t));
+  const a = lerp(f.a, c.a, t);
+  if (a < 1) {
+    return `rgba(${r},${g},${b},${a.toFixed(3)})`;
+  }
   return `rgb(${r},${g},${b})`;
 }
 

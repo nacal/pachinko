@@ -14,13 +14,13 @@ import type {
   ScenarioRule,
 } from "./types";
 
-function matchesValue<T>(condition: T | readonly T[] | undefined, value: T): boolean {
+export function matchesValue<T>(condition: T | readonly T[] | undefined, value: T): boolean {
   if (condition === undefined) return true;
   if (Array.isArray(condition)) return (condition as T[]).includes(value);
   return condition === value;
 }
 
-function evaluateScenarioCondition(
+export function evaluateScenarioCondition(
   condition: ScenarioCondition,
   drawResult: DrawResultInput,
 ): boolean {
@@ -60,7 +60,7 @@ interface WeightedItem {
   readonly weight: number;
 }
 
-function weightedSelectByRng<T extends WeightedItem>(
+export function weightedSelectByRng<T extends WeightedItem>(
   entries: readonly T[],
   rng: ScenarioRng,
 ): T | undefined {

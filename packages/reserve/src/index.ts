@@ -8,6 +8,7 @@ export type {
   ReserveDisplayConfig,
   ReserveDisplay,
   ReserveQueue,
+  ResolveScenarioContext,
   ReserveOrchestratorConfig,
   ReserveOrchestrator,
 } from "./types";

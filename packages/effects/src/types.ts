@@ -264,6 +264,9 @@ export interface PresentationScenario {
   readonly color: string;
   readonly phaseEffects: readonly PhaseEffectEntry[];
   readonly reachPresentation: ResolvedReachPresentation | null;
+  readonly ambientEffects?: readonly AmbientEffect[];
+  readonly zoneId?: string | null;
+  readonly telop?: TelopDefinition | null;
 }
 
 // ─── Scenario Rules (distribution tables) ───
@@ -316,6 +319,116 @@ export interface ScenarioRule {
 export interface ScenarioConfig {
   readonly rules: readonly ScenarioRule[];
   readonly defaultColor?: string;
+}
+
+// ─── Ambient Effect (cross-spin effects injected by other entries) ───
+
+export interface AmbientEffect {
+  readonly id: string;
+  readonly phase: EffectPhase | readonly EffectPhase[] | null;
+  readonly effects: readonly EffectOrComposite[];
+  readonly priority?: number;
+}
+
+// ─── Telop ───
+
+export interface TelopDefinition {
+  readonly text: string;
+  readonly font?: string;
+  readonly color?: string;
+  readonly direction?: "left-to-right" | "right-to-left" | "bottom-to-top";
+  readonly timing: EffectTiming;
+}
+
+// ─── Consecutive Prediction ───
+
+export interface ConsecutivePredictionStep {
+  readonly spinsBeforeTarget: number;
+  readonly phase: EffectPhase | readonly EffectPhase[] | null;
+  readonly effects: readonly EffectOrComposite[];
+}
+
+export interface ConsecutivePredictionPattern {
+  readonly id: string;
+  readonly steps: readonly ConsecutivePredictionStep[];
+}
+
+// ─── Zone Definition ───
+
+export interface ZoneDefinition {
+  readonly id: string;
+  readonly ambientEffects?: readonly AmbientEffect[];
+}
+
+// ─── Pre-Reading Scenario Rules ───
+
+export interface ConsecutivePredictionRule {
+  readonly id: string;
+  readonly condition: ScenarioCondition;
+  readonly pattern: ConsecutivePredictionPattern;
+  readonly weight: number;
+}
+
+export interface ZoneRule {
+  readonly id: string;
+  readonly triggerCondition: ScenarioCondition;
+  readonly leadSpins: number;
+  readonly zone: ZoneDefinition;
+  readonly weight: number;
+}
+
+export interface TelopRule {
+  readonly id: string;
+  readonly condition: ScenarioCondition;
+  readonly spinOffset: number;
+  readonly telop: TelopDefinition;
+  readonly weight: number;
+}
+
+export interface GroupPredictionRule {
+  readonly id: string;
+  readonly condition: ScenarioCondition;
+  readonly spinOffset: number;
+  readonly count: number;
+  readonly memberEffect: EffectOrComposite;
+  readonly staggerDelay?: number;
+  readonly phase?: EffectPhase;
+  readonly weight: number;
+}
+
+// ─── Pre-Reading Scenario Config ───
+
+export interface PreReadingScenarioConfig {
+  readonly base: ScenarioConfig;
+  readonly consecutivePredictions?: readonly ConsecutivePredictionRule[];
+  readonly zones?: readonly ZoneRule[];
+  readonly telopRules?: readonly TelopRule[];
+  readonly groupPredictionRules?: readonly GroupPredictionRule[];
+}
+
+// ─── Ambient Effect Patch ───
+
+export interface AmbientEffectPatch {
+  readonly queueIndex: number;
+  readonly ambientEffects: readonly AmbientEffect[];
+  readonly zoneId?: string;
+  readonly telop?: TelopDefinition;
+}
+
+export interface PreReadingScenarioResult {
+  readonly scenario: PresentationScenario;
+  readonly patches: readonly AmbientEffectPatch[];
+}
+
+// ─── Queue Scenario Context ───
+
+export interface QueueScenarioContext {
+  readonly queuePosition: number;
+  readonly queueSize: number;
+  readonly existingEntries: readonly {
+    readonly drawResult: DrawResultInput;
+    readonly scenario?: unknown;
+  }[];
 }
 
 // ─── Color Expectation (期待度) ───

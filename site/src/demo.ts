@@ -17,12 +17,14 @@ import {
   textOverlay,
   shake,
   fade,
+  vignette,
   sequence,
   parallel,
   colorBg,
   gradientBg,
   particleBg,
   resolveScenario,
+  resolvePreReadingScenario,
   computeColorExpectations,
 } from "@pachinko/effects";
 import type {
@@ -30,7 +32,10 @@ import type {
   ReachPresentation,
   BackgroundRule,
   ScenarioConfig,
+  PreReadingScenarioConfig,
   PresentationScenario,
+  PreReadingScenarioResult,
+  AmbientEffectPatch,
   ScenarioRng,
 } from "@pachinko/effects";
 import {
@@ -348,78 +353,81 @@ const backgroundRules: BackgroundRule[] = [
 
 // ─── Scenario config (presentation distribution tables) ───
 
+// Shared reach presentation effects
+const normalReachEffects = sequence(
+  textOverlay("リーチ!", {
+    font: "bold 72px sans-serif",
+    color: "#ff0000",
+    timing: { delay: 0, duration: 1500 },
+    fadeIn: 200,
+    fadeOut: 300,
+  }),
+  parallel(
+    flash({ color: "#ff4444", opacity: 0.5, count: 5, timing: { delay: 0, duration: 1000 } }),
+    shake({ intensity: 8, frequency: 30, timing: { delay: 0, duration: 1000 } }),
+  ),
+  textOverlay("ボタンを押せ!", {
+    font: "bold 48px sans-serif",
+    color: "#ffd700",
+    timing: { delay: 0, duration: 3000 },
+    fadeIn: 100,
+    fadeOut: 0,
+  }),
+);
+
+const superReachEffects = sequence(
+  flash({ color: "#ff0000", opacity: 0.8, count: 10, timing: { delay: 0, duration: 2000 } }),
+  textOverlay("超激アツ!", {
+    font: "bold 96px sans-serif",
+    color: "#ff0000",
+    timing: { delay: 0, duration: 2000 },
+    fadeIn: 300,
+    fadeOut: 500,
+  }),
+  parallel(
+    shake({ intensity: 15, frequency: 50, timing: { delay: 0, duration: 1500 } }),
+    flash({ color: "#ffd700", opacity: 0.6, count: 8, timing: { delay: 0, duration: 1500 } }),
+  ),
+  textOverlay("ボタンを押せ!", {
+    font: "bold 48px sans-serif",
+    color: "#ffd700",
+    timing: { delay: 0, duration: 3000 },
+    fadeIn: 100,
+    fadeOut: 0,
+  }),
+);
+
 const scenarioConfig: ScenarioConfig = {
   defaultColor: "white",
   rules: [
+    // ─── 大当たり（必ずリーチ）: 熱い色が出やすい ───
     {
       id: "oatari",
       condition: { outcome: "oatari" },
       priority: 10,
       color: {
         entries: [
-          { color: "rainbow", weight: 50, reliability: 0.95 },
-          { color: "gold", weight: 30, reliability: 0.9 },
-          { color: "red", weight: 15, reliability: 0.7 },
-          { color: "green", weight: 20, reliability: 0.4 },
-          { color: "blue", weight: 40, reliability: 0.15 },
-          { color: "white", weight: 100, reliability: 0.05 },
+          // reliability高め → ガセで通常ハズレに漏れにくい
+          { color: "rainbow", weight: 50, reliability: 0.98 },
+          { color: "gold", weight: 30, reliability: 0.95 },
+          { color: "red", weight: 40, reliability: 0.9 },
+          { color: "green", weight: 30, reliability: 0.7 },
+          { color: "blue", weight: 20, reliability: 0.5 },
+          { color: "white", weight: 10 },
         ],
       },
       reachPresentations: [
         {
           presentationId: "kakuhen-super-reach",
           weight: 70,
-          effects: [
-            sequence(
-              flash({ color: "#ff0000", opacity: 0.8, count: 10, timing: { delay: 0, duration: 2000 } }),
-              textOverlay("超激アツ!", {
-                font: "bold 96px sans-serif",
-                color: "#ff0000",
-                timing: { delay: 0, duration: 2000 },
-                fadeIn: 300,
-                fadeOut: 500,
-              }),
-              parallel(
-                shake({ intensity: 15, frequency: 50, timing: { delay: 0, duration: 1500 } }),
-                flash({ color: "#ffd700", opacity: 0.6, count: 8, timing: { delay: 0, duration: 1500 } }),
-              ),
-              textOverlay("ボタンを押せ!", {
-                font: "bold 48px sans-serif",
-                color: "#ffd700",
-                timing: { delay: 0, duration: 3000 },
-                fadeIn: 100,
-                fadeOut: 0,
-              }),
-            ),
-          ],
+          effects: [superReachEffects],
           requireConfirm: true,
           confirmReadyAt: 5500,
         },
         {
           presentationId: "normal-reach",
           weight: 30,
-          effects: [
-            sequence(
-              textOverlay("リーチ!", {
-                font: "bold 72px sans-serif",
-                color: "#ff0000",
-                timing: { delay: 0, duration: 1500 },
-                fadeIn: 200,
-                fadeOut: 300,
-              }),
-              parallel(
-                flash({ color: "#ff4444", opacity: 0.5, count: 5, timing: { delay: 0, duration: 1000 } }),
-                shake({ intensity: 8, frequency: 30, timing: { delay: 0, duration: 1000 } }),
-              ),
-              textOverlay("ボタンを押せ!", {
-                font: "bold 48px sans-serif",
-                color: "#ffd700",
-                timing: { delay: 0, duration: 3000 },
-                fadeIn: 100,
-                fadeOut: 0,
-              }),
-            ),
-          ],
+          effects: [normalReachEffects],
           requireConfirm: true,
           confirmReadyAt: 2500,
         },
@@ -464,74 +472,152 @@ const scenarioConfig: ScenarioConfig = {
         },
       ],
     },
+    // ─── リーチハズレ: 中間色が中心、たまにガセ熱 ───
     {
       id: "reach-hazure",
       condition: { outcome: "hazure", isReach: true },
       priority: 5,
+      color: {
+        entries: [
+          { color: "gold", weight: 3 },
+          { color: "red", weight: 8 },
+          { color: "green", weight: 25 },
+          { color: "blue", weight: 30 },
+          { color: "white", weight: 50 },
+        ],
+      },
       reachPresentations: [
         {
           presentationId: "normal-reach",
           weight: 90,
-          effects: [
-            sequence(
-              textOverlay("リーチ!", {
-                font: "bold 72px sans-serif",
-                color: "#ff0000",
-                timing: { delay: 0, duration: 1500 },
-                fadeIn: 200,
-                fadeOut: 300,
-              }),
-              parallel(
-                flash({ color: "#ff4444", opacity: 0.5, count: 5, timing: { delay: 0, duration: 1000 } }),
-                shake({ intensity: 8, frequency: 30, timing: { delay: 0, duration: 1000 } }),
-              ),
-              textOverlay("ボタンを押せ!", {
-                font: "bold 48px sans-serif",
-                color: "#ffd700",
-                timing: { delay: 0, duration: 3000 },
-                fadeIn: 100,
-                fadeOut: 0,
-              }),
-            ),
-          ],
+          effects: [normalReachEffects],
           requireConfirm: true,
           confirmReadyAt: 2500,
         },
         {
           presentationId: "kakuhen-super-reach",
           weight: 10,
-          effects: [
-            sequence(
-              flash({ color: "#ff0000", opacity: 0.8, count: 10, timing: { delay: 0, duration: 2000 } }),
-              textOverlay("超激アツ!", {
-                font: "bold 96px sans-serif",
-                color: "#ff0000",
-                timing: { delay: 0, duration: 2000 },
-                fadeIn: 300,
-                fadeOut: 500,
-              }),
-              parallel(
-                shake({ intensity: 15, frequency: 50, timing: { delay: 0, duration: 1500 } }),
-                flash({ color: "#ffd700", opacity: 0.6, count: 8, timing: { delay: 0, duration: 1500 } }),
-              ),
-              textOverlay("ボタンを押せ!", {
-                font: "bold 48px sans-serif",
-                color: "#ffd700",
-                timing: { delay: 0, duration: 3000 },
-                fadeIn: 100,
-                fadeOut: 0,
-              }),
-            ),
-          ],
+          effects: [superReachEffects],
           requireConfirm: true,
           confirmReadyAt: 5500,
         },
       ],
     },
+    // ─── 通常ハズレ（リーチなし）: ほぼ白/青のみ ───
     {
       id: "normal-hazure",
       condition: { outcome: "hazure", isReach: false },
       priority: 0,
+      color: {
+        entries: [
+          { color: "blue", weight: 10 },
+          { color: "white", weight: 90 },
+        ],
+      },
+    },
+  ],
+};
+
+// ─── Pre-reading scenario config ───
+
+const preReadingConfig: PreReadingScenarioConfig = {
+  base: scenarioConfig,
+  consecutivePredictions: [
+    {
+      id: "escalating-vignette",
+      condition: { outcome: "oatari" },
+      pattern: {
+        id: "3-step-vignette",
+        steps: [
+          {
+            spinsBeforeTarget: 3,
+            phase: null,
+            effects: [
+              vignette({
+                color: "#2244aa",
+                opacity: 0.35,
+                spread: 0.35,
+                pulseCount: 2,
+                pulseMin: 0.5,
+                timing: { delay: 0, duration: 4000 },
+              }),
+            ],
+          },
+          {
+            spinsBeforeTarget: 2,
+            phase: null,
+            effects: [
+              vignette({
+                color: "#aa8800",
+                opacity: 0.45,
+                spread: 0.45,
+                pulseCount: 3,
+                pulseMin: 0.4,
+                timing: { delay: 0, duration: 4000 },
+              }),
+            ],
+          },
+          {
+            spinsBeforeTarget: 1,
+            phase: null,
+            effects: [
+              parallel(
+                vignette({
+                  color: "#cc2200",
+                  opacity: 0.55,
+                  spread: 0.55,
+                  pulseCount: 4,
+                  pulseMin: 0.3,
+                  timing: { delay: 0, duration: 4000 },
+                }),
+                shake({ intensity: 3, frequency: 15, timing: { delay: 1000, duration: 800 } }),
+              ),
+            ],
+          },
+        ],
+      },
+      weight: 40,
+    },
+  ],
+  zones: [
+    {
+      id: "hot-zone",
+      triggerCondition: { outcome: "oatari" },
+      leadSpins: 2,
+      zone: {
+        id: "hot-zone",
+        ambientEffects: [
+          {
+            id: "zone-red-pulse",
+            phase: null,
+            effects: [
+              vignette({
+                color: "#880022",
+                opacity: 0.3,
+                spread: 0.3,
+                pulseCount: 3,
+                pulseMin: 0.4,
+                timing: { delay: 0, duration: 4000 },
+              }),
+            ],
+            priority: -10,
+          },
+        ],
+      },
+      weight: 30,
+    },
+  ],
+  telopRules: [],
+  groupPredictionRules: [
+    {
+      id: "group-flash",
+      condition: { outcome: "oatari" },
+      spinOffset: -1,
+      count: 3,
+      memberEffect: flash({ color: "#ffffff", opacity: 0.3, count: 1, timing: { delay: 0, duration: 200 } }),
+      staggerDelay: 100,
+      phase: "spin-start",
+      weight: 25,
     },
   ],
 };
@@ -740,7 +826,7 @@ async function init(): Promise<void> {
         { color: "blue", probability: 0.1 },
       ],
     },
-    resolveScenario: (drawResult) => {
+    resolveScenario: (drawResult, context) => {
       const input = {
         outcome: drawResult.outcome,
         reels: drawResult.reels,
@@ -749,7 +835,43 @@ async function init(): Promise<void> {
         gameMode: drawResult.previousState.mode,
         consecutiveBonuses: drawResult.previousState.consecutiveBonuses,
       };
-      return resolveScenario(scenarioConfig, input, scenarioRng);
+      const queueContext = {
+        queuePosition: context.queuePosition,
+        queueSize: context.queueSize,
+        existingEntries: context.existingEntries.map((e) => ({
+          drawResult: {
+            outcome: e.drawResult.outcome,
+            reels: e.drawResult.reels,
+            isReach: e.drawResult.isReach,
+            bonusType: e.drawResult.bonusType,
+            gameMode: e.drawResult.previousState.mode,
+            consecutiveBonuses: e.drawResult.previousState.consecutiveBonuses,
+          },
+          scenario: e.scenario,
+        })),
+      };
+      return resolvePreReadingScenario(preReadingConfig, input, queueContext, scenarioRng);
+    },
+    applyScenarioPatches: (entries, rawPatches) => {
+      const patches = rawPatches as AmbientEffectPatch[];
+      for (const patch of patches) {
+        if (patch.queueIndex < 0 || patch.queueIndex >= entries.length) continue;
+        const entry = entries[patch.queueIndex]!;
+        const existing = entry.scenario as PresentationScenario | undefined;
+        if (!existing) continue;
+        entries[patch.queueIndex] = {
+          ...entry,
+          scenario: {
+            ...existing,
+            ambientEffects: [
+              ...(existing.ambientEffects ?? []),
+              ...patch.ambientEffects,
+            ],
+            zoneId: patch.zoneId ?? existing.zoneId,
+            telop: patch.telop ?? existing.telop,
+          },
+        };
+      }
     },
     onSpin: (entry: ReserveEntry) => {
       doSpinWithResult(entry.drawResult, entry.scenario as PresentationScenario | undefined, entry);
@@ -777,14 +899,14 @@ async function init(): Promise<void> {
     btnSpin.disabled = false; // Allow adding reserves
 
     const result = draw(machine, gameState, rng);
-    const scenario = resolveScenario(scenarioConfig, {
+    const { scenario } = resolvePreReadingScenario(preReadingConfig, {
       outcome: result.outcome,
       reels: result.reels,
       isReach: result.isReach,
       bonusType: result.bonusType,
       gameMode: result.previousState.mode,
       consecutiveBonuses: result.previousState.consecutiveBonuses,
-    }, scenarioRng);
+    }, { queuePosition: 0, queueSize: 1, existingEntries: [] }, scenarioRng);
     const directEntry: ReserveEntry = {
       id: Date.now(),
       drawResult: result,

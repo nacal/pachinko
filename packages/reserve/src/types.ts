@@ -74,9 +74,16 @@ export interface ReserveQueue {
   size(): number;
   isFull(): boolean;
   clear(): void;
+  patchEntry(index: number, updater: (entry: ReserveEntry) => ReserveEntry): void;
 }
 
 // ─── Orchestrator ───
+
+export interface ResolveScenarioContext {
+  readonly queuePosition: number;
+  readonly queueSize: number;
+  readonly existingEntries: readonly ReserveEntry[];
+}
 
 export interface ReserveOrchestratorConfig {
   readonly machine: MachineSpec;
@@ -86,7 +93,8 @@ export interface ReserveOrchestratorConfig {
   readonly preReading: PreReadingConfig;
   readonly onSpin: (entry: ReserveEntry) => void;
   readonly onQueueChange?: (queue: readonly ReserveEntry[]) => void;
-  readonly resolveScenario?: (drawResult: DrawResult) => unknown;
+  readonly resolveScenario?: (drawResult: DrawResult, context: ResolveScenarioContext) => unknown;
+  readonly applyScenarioPatches?: (entries: ReserveEntry[], patches: unknown) => void;
 }
 
 export interface ReserveOrchestrator {
