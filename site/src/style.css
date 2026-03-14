@@ -196,6 +196,84 @@ pre code {
   line-height: 1.5;
 }
 
+/* ─── Syntax highlighting (Prism custom theme) ─── */
+
+.token.comment,
+.token.prolog,
+.token.doctype,
+.token.cdata {
+  color: #6a737d;
+  font-style: italic;
+}
+
+.token.punctuation {
+  color: #8b949e;
+}
+
+.token.property,
+.token.tag,
+.token.constant,
+.token.symbol,
+.token.deleted {
+  color: #ff7b72;
+}
+
+.token.boolean,
+.token.number {
+  color: #79c0ff;
+}
+
+.token.selector,
+.token.string,
+.token.char,
+.token.builtin,
+.token.inserted,
+.token.attr-value {
+  color: #a5d6ff;
+}
+
+.token.operator,
+.token.entity,
+.token.url {
+  color: #8b949e;
+}
+
+.token.atrule,
+.token.keyword,
+.token.class-name {
+  color: #ff7b72;
+}
+
+.token.function {
+  color: #d2a8ff;
+}
+
+.token.regex,
+.token.important,
+.token.variable {
+  color: #ffa657;
+}
+
+.token.attr-name {
+  color: #79c0ff;
+}
+
+.token.keyword {
+  color: #ff7b72;
+}
+
+.token.builtin {
+  color: #ffa657;
+}
+
+.token.string {
+  color: #a5d6ff;
+}
+
+.token.template-string > .token.interpolation > .token.interpolation-punctuation {
+  color: #ff7b72;
+}
+
 /* ─── Sections ─── */
 
 section {

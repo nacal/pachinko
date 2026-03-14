@@ -8,15 +8,17 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@pachinko/effects": "workspace:*",
     "@pachinko/lottery": "workspace:*",
     "@pachinko/rendering": "workspace:*",
-    "@pachinko/effects": "workspace:*",
-    "@pachinko/tracker": "workspace:*",
     "@pachinko/reserve": "workspace:*",
-    "@pachinko/ui": "workspace:*"
+    "@pachinko/tracker": "workspace:*",
+    "@pachinko/ui": "workspace:*",
+    "prismjs": "^1.30.0"
   },
   "devDependencies": {
-    "vite": "^6.0.0",
-    "typescript": "^5.8.0"
+    "@types/prismjs": "^1.26.6",
+    "typescript": "^5.8.0",
+    "vite": "^6.0.0"
   }
 }

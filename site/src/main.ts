@@ -1,3 +1,7 @@
+import Prism from "prismjs";
+import "prismjs/components/prism-typescript";
+import "prismjs/components/prism-bash";
+
 // Highlight active nav link
 const currentPath = window.location.pathname;
 document.querySelectorAll("nav a").forEach((link) => {
@@ -12,3 +16,6 @@ document.querySelectorAll("nav a").forEach((link) => {
     el.classList.add("active");
   }
 });
+
+// Syntax highlighting
+Prism.highlightAll();
