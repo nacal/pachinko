@@ -10,15 +10,20 @@ import { createInlineReelRenderer, DEFAULT_TIMING } from "@pachinko/rendering";
 import type { DrawResultInput, SymbolSpec } from "@pachinko/rendering";
 import {
   createEffectsEngine,
+  createBackgroundEngine,
   connectRenderer,
+  connectBackgroundEngine,
   flash,
   textOverlay,
   shake,
   fade,
   sequence,
   parallel,
+  colorBg,
+  gradientBg,
+  particleBg,
 } from "@pachinko/effects";
-import type { EffectRule, ReachPresentation } from "@pachinko/effects";
+import type { EffectRule, ReachPresentation, BackgroundRule } from "@pachinko/effects";
 import {
   createSessionTracker,
   renderStatsPanel,
@@ -109,6 +114,7 @@ async function loadSymbolStrip(): Promise<SymbolSpec[]> {
 
 // ─── DOM elements ───
 
+const bgCanvas = document.getElementById("bg-canvas") as HTMLCanvasElement;
 const canvas = document.getElementById("reel-canvas") as HTMLCanvasElement;
 const effectsCanvas = document.getElementById("effects-canvas") as HTMLCanvasElement;
 const btnSpin = document.getElementById("btn-spin") as HTMLButtonElement;
@@ -306,6 +312,24 @@ const reachPresentations: ReachPresentation[] = [
   },
 ];
 
+// ─── Background rules ───
+
+const backgroundRules: BackgroundRule[] = [
+  {
+    id: "reach-intense-bg",
+    condition: { phase: ["reach", "reach-presentation"], isReach: true },
+    source: gradientBg({ colors: ["#330000", "#660000", "#990000"], speed: 2 }),
+    transition: { type: "crossfade", duration: 300 },
+    priority: 10,
+  },
+  {
+    id: "oatari-celebration-bg",
+    condition: { phase: "result", outcome: "oatari" },
+    source: particleBg({ count: 100, color: "#ffd700", speed: 3, size: 4 }),
+    transition: { type: "fade", duration: 200 },
+  },
+];
+
 // ─── State ───
 
 const rng = createRng({ value: Date.now() });
@@ -328,7 +352,22 @@ async function init(): Promise<void> {
       reachSlowdownDuration: 1800,
       enableReachPresentation: true,
     },
+    style: {
+      backgroundColor: "rgba(0, 0, 0, 0)",
+    },
   });
+
+  // ─── Background engine ───
+  const bgEngine = createBackgroundEngine(bgCanvas, {
+    modeBackgrounds: {
+      normal: gradientBg({ colors: ["#0a0a1a", "#1a1a3e", "#0a0a1a"], speed: 0.3 }),
+      kakuhen: gradientBg({ colors: ["#3a0000", "#660022", "#3a0000"], speed: 1 }),
+      jitan: gradientBg({ colors: ["#001a33", "#003366", "#001a33"], speed: 0.5 }),
+    },
+    rules: backgroundRules,
+    defaultTransition: { type: "fade", duration: 500 },
+  });
+  connectBackgroundEngine(renderer, bgEngine);
 
   // ─── Effects engine ───
   const effectsEngine = createEffectsEngine(effectsCanvas, {
@@ -383,13 +422,16 @@ async function init(): Promise<void> {
       isReach: result.isReach,
     };
 
-    effectsEngine.start({
+    const effectInput = {
       ...renderInput,
       bonusType: result.bonusType,
       gameMode: result.previousState.mode,
       consecutiveBonuses: result.previousState.consecutiveBonuses,
-    });
+    };
+    effectsEngine.start(effectInput);
+    bgEngine.start(effectInput);
     renderer.spin(renderInput);
+    bgEngine.setMode(result.nextState.mode);
     updateModeBanner(result.nextState);
     updateCharts();
   }

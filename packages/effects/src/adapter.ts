@@ -4,6 +4,7 @@ import type {
   ReelPhase,
   ReelRendererLike,
 } from "./types.js";
+import type { BackgroundEngine } from "./background-types.js";
 
 const REEL_PHASE_TO_EFFECT_PHASE: Partial<Record<ReelPhase, EffectPhase>> = {
   spinning: "spin-start",
@@ -64,6 +65,61 @@ export function connectRenderer(
   renderer.onComplete(() => {
     // Allow final result effects to run, then stop after a delay
   });
+
+  return () => {
+    stopLoop();
+  };
+}
+
+/**
+ * Connect a background engine to a reel renderer.
+ * Forwards phase changes and reel stop events.
+ * Runs a rAF loop to tick the background engine.
+ */
+export function connectBackgroundEngine(
+  renderer: ReelRendererLike,
+  bgEngine: BackgroundEngine,
+): () => void {
+  let animationId: number | null = null;
+  let running = false;
+
+  function loop(): void {
+    if (!running) return;
+    bgEngine.tick(performance.now());
+    animationId = requestAnimationFrame(loop);
+  }
+
+  function startLoop(): void {
+    if (running) return;
+    running = true;
+    animationId = requestAnimationFrame(loop);
+  }
+
+  function stopLoop(): void {
+    running = false;
+    if (animationId !== null) {
+      cancelAnimationFrame(animationId);
+      animationId = null;
+    }
+  }
+
+  renderer.onPhaseChange((phase) => {
+    const effectPhase = REEL_PHASE_TO_EFFECT_PHASE[phase];
+    if (effectPhase) {
+      bgEngine.setPhase(effectPhase);
+      startLoop();
+    }
+    if (phase === "idle" || phase === "result") {
+      // Keep background rendering even when idle
+    }
+  });
+
+  renderer.onReelStop((position, symbol) => {
+    bgEngine.setReelStop(position, symbol);
+  });
+
+  // Start the background loop immediately (backgrounds render even when idle)
+  startLoop();
 
   return () => {
     stopLoop();

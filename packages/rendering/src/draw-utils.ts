@@ -9,6 +9,7 @@ export function drawBackground(
   height: number,
   style: StyleConfig,
 ): void {
+  ctx.clearRect(0, 0, width, height);
   ctx.fillStyle = style.backgroundColor;
   ctx.fillRect(0, 0, width, height);
 }

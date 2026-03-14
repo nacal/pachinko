@@ -242,6 +242,20 @@ export interface EffectsEngine {
 
 // ─── ReelRenderer (subset for adapter) ───
 
+// ─── Re-export background types ───
+
+export type {
+  BackgroundRenderFn,
+  BackgroundSource,
+  BackgroundTransition,
+  BackgroundRule,
+  ModeBackgroundMap,
+  BackgroundEngineConfig,
+  BackgroundEngine,
+} from "./background-types.js";
+
+// ─── ReelRenderer (subset for adapter) ───
+
 export interface ReelRendererLike {
   onPhaseChange(callback: (phase: ReelPhase) => void): void;
   onReelStop(callback: (reel: ReelPosition, symbol: SymbolSpec) => void): void;

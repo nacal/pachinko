@@ -33,6 +33,13 @@ export type {
   EffectsEngineConfig,
   EffectsEngine,
   ReelRendererLike,
+  BackgroundRenderFn,
+  BackgroundSource,
+  BackgroundTransition,
+  BackgroundRule,
+  ModeBackgroundMap,
+  BackgroundEngineConfig,
+  BackgroundEngine,
 } from "./types.js";
 
 // ─── Easing ───
@@ -78,5 +85,11 @@ export { renderEffect, computeShakeOffset } from "./renderer.js";
 // ─── Engine ───
 export { createEffectsEngine } from "./engine.js";
 
+// ─── Background ───
+export { createBackgroundEngine } from "./background-engine.js";
+export { drawBackgroundSource, drawBackgroundTransition } from "./background-renderer.js";
+export { colorBg, imageBg, videoBg, canvasBg, particleBg, gradientBg } from "./background-presets.js";
+export type { ParticleBgOptions, GradientBgOptions } from "./background-presets.js";
+
 // ─── Adapter ───
-export { connectRenderer } from "./adapter.js";
+export { connectRenderer, connectBackgroundEngine } from "./adapter.js";
