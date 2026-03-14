@@ -315,6 +315,129 @@ const engine = createEffectsEngine(overlayCanvas, {
       </div>
     </section>
 
+    <!-- ─── @pachinko/tracker ─── -->
+    <section>
+      <h2>@pachinko/tracker</h2>
+      <p style="color: var(--text-muted);">Session data tracking and Canvas visualization — slump graphs, hit history charts, and data lamp stats panels.</p>
+
+      <div class="api-section">
+        <h3>Session Tracker</h3>
+
+        <h3><code>createSessionTracker(config): SessionTracker</code></h3>
+        <p class="api-desc">Create a session tracker that records spins, computes statistics, and provides immutable snapshots.</p>
+        <pre><code>import { createSessionTracker, renderStatsPanel, renderSlumpGraph, renderHitHistory } from "@pachinko/tracker";
+
+const tracker = createSessionTracker({
+  ballsPerSpin: 4,
+  ballsPerRound: { kakuhen16R: 100, tsujou: 100 },
+  specProbability: 319.68,
+});
+
+// Record spins
+tracker.recordSpin({ outcome: "oatari", bonusType: "kakuhen16R", mode: "normal" });
+
+// Get data
+const snap = tracker.snapshot();
+const stats = tracker.stats();</code></pre>
+      </div>
+
+      <div class="api-section">
+        <h3>SessionTracker Interface</h3>
+        <table class="type-table">
+          <thead><tr><th>Method</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>recordSpin(input)</code></td><td>Record a single spin result</td></tr>
+            <tr><td><code>snapshot()</code></td><td>Get immutable snapshot of current session</td></tr>
+            <tr><td><code>stats()</code></td><td>Compute derived statistics</td></tr>
+            <tr><td><code>reset()</code></td><td>Reset to initial state</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="api-section">
+        <h3>SessionStats</h3>
+        <table class="type-table">
+          <thead><tr><th>Property</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>totalSpins</code></td><td>Total spins this session</td></tr>
+            <tr><td><code>totalHits</code></td><td>Total jackpot count</td></tr>
+            <tr><td><code>hitRate</code></td><td>Hit rate as decimal</td></tr>
+            <tr><td><code>observedProbability</code></td><td>Formatted as <code>"1/X.XX"</code></td></tr>
+            <tr><td><code>specProbability</code></td><td>Formatted as <code>"1/X.XX"</code></td></tr>
+            <tr><td><code>currentRotations</code></td><td>Rotations since last hit</td></tr>
+            <tr><td><code>maxDrought</code></td><td>Deepest drought (max rotations without a hit)</td></tr>
+            <tr><td><code>currentStreak</code></td><td>Current consecutive bonus count</td></tr>
+            <tr><td><code>maxStreak</code></td><td>Max consecutive bonus count</td></tr>
+            <tr><td><code>averageStreak</code></td><td>Average consecutive bonus count</td></tr>
+            <tr><td><code>netBalls</code></td><td>Net ball gain/loss (差玉)</td></tr>
+            <tr><td><code>kakuhenCount</code></td><td>Kakuhen bonus count</td></tr>
+            <tr><td><code>normalCount</code></td><td>Normal bonus count</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="api-section">
+        <h3>Charts</h3>
+        <p class="api-desc">All chart functions follow the signature <code>(ctx, width, height, data, options?)</code>.</p>
+
+        <h3><code>renderSlumpGraph(ctx, width, height, data, options?)</code></h3>
+        <p class="api-desc">Line chart showing net ball count over cumulative spins. Positive area filled green, negative filled red. Zero line highlighted.</p>
+
+        <h3><code>renderHitHistory(ctx, width, height, hits, options?)</code></h3>
+        <p class="api-desc">Bar chart showing rotation count between hits. Bars color-coded by bonus type. Labels show rotation count above each bar.</p>
+        <table class="type-table">
+          <thead><tr><th>Option</th><th>Default</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>maxBars</code></td><td><code>20</code></td><td>Max bars to display (most recent N)</td></tr>
+            <tr><td><code>showLabels</code></td><td><code>true</code></td><td>Show rotation count labels above bars</td></tr>
+          </tbody>
+        </table>
+
+        <h3><code>renderStatsPanel(ctx, width, height, stats, options?)</code></h3>
+        <p class="api-desc">Data lamp style stats display: 回転数, 大当たり, 確率, 連チャン, 最大ハマり, 差玉.</p>
+        <table class="type-table">
+          <thead><tr><th>Option</th><th>Default</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>machineName</code></td><td>—</td><td>Machine name header</td></tr>
+            <tr><td><code>rows</code></td><td>all</td><td>Select which stat rows to display</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="api-section">
+        <h3>Chart Styling</h3>
+        <p class="api-desc">All charts accept <code>Partial&lt;ChartStyle&gt;</code> via <code>options.style</code>.</p>
+        <table class="type-table">
+          <thead><tr><th>Property</th><th>Default</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>backgroundColor</code></td><td><code>"#1a1a2e"</code></td><td>Chart background</td></tr>
+            <tr><td><code>textColor</code></td><td><code>"#e0e0e0"</code></td><td>Text color</td></tr>
+            <tr><td><code>positiveColor</code></td><td><code>"#00ff88"</code></td><td>Positive value color</td></tr>
+            <tr><td><code>negativeColor</code></td><td><code>"#ff4444"</code></td><td>Negative value color</td></tr>
+            <tr><td><code>bonusColors</code></td><td><code>{}</code></td><td>Color per bonus type ID</td></tr>
+            <tr><td><code>font</code></td><td><code>"14px monospace"</code></td><td>Base font</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="api-section">
+        <h3>Key Types</h3>
+        <table class="type-table">
+          <thead><tr><th>Type</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>SessionTracker</code></td><td>Main tracker interface</td></tr>
+            <tr><td><code>SessionSnapshot</code></td><td>Immutable session state</td></tr>
+            <tr><td><code>SessionStats</code></td><td>Computed statistics</td></tr>
+            <tr><td><code>TrackerConfig</code></td><td>Tracker configuration</td></tr>
+            <tr><td><code>SpinInput</code></td><td>Input for <code>recordSpin()</code></td></tr>
+            <tr><td><code>HitEntry</code></td><td>Single hit record in history</td></tr>
+            <tr><td><code>BallDataPoint</code></td><td><code>{ spinNumber, netBalls }</code> for slump graph</td></tr>
+            <tr><td><code>ChartStyle</code></td><td>Chart visual customization</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
     <!-- ─── @pachinko/rendering ─── -->
     <section>
       <h2>@pachinko/rendering</h2>
