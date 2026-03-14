@@ -1,8 +1,8 @@
 # @pachinko/effects
 
-パチンコ演出エフェクトエンジン — フラッシュ、シェイク、テキストオーバーレイ、コンポーザブルなエフェクトパイプラインを宣言的に定義・実行します。
+パチンコ演出エフェクトエンジン — フラッシュ、シェイク、テキストオーバーレイ、背景レイヤー、コンポーザブルなエフェクトパイプラインを宣言的に定義・実行します。
 
-ゲームイベント（リーチ、大当たり、特定リール停止など）を視覚エフェクトにマッピングするルールを定義します。エフェクトはリールCanvasとは別のCanvasオーバーレイに描画されます。
+ゲームイベント（リーチ、大当たり、特定リール停止など）を視覚エフェクトにマッピングするルールを定義します。エフェクトはリールCanvasとは別のCanvasオーバーレイに描画されます。背景レイヤーはリールの背後に描画され、モード・フェーズに連動して切り替わります。
 
 ## 特徴
 
@@ -10,6 +10,11 @@
 - 組み込みプリミティブ: flash, textOverlay, backgroundChange, shake, fade, imageOverlay, custom
 - エフェクト合成: `sequence`（順次）、`parallel`（並列）、`stagger`（ずらし）
 - Canvasオーバーレイ描画（リールCanvasとは別レイヤー）
+- **背景レイヤーシステム** — モード別・フェーズ別の背景切り替え
+- 背景ソース: 色、画像、動画、カスタムCanvas描画関数
+- アニメーションプリセット: `gradientBg`（グラデーション）、`particleBg`（パーティクル）
+- スムーズなトランジション: カット、フェード、クロスフェード
+- リーチ演出システム（`confirmReadyAt` による確認タイミング制御）
 - シェイクオフセットの外部公開（リールCanvasにも適用可能）
 - `@pachinko/rendering` 連携アダプター
 - イージング関数ライブラリ
@@ -82,8 +87,8 @@ reelRenderer.spin(result);
 演出エンジンは独自のフェーズ体系を持ち、rendering のフェーズからマッピングされます：
 
 ```
-pre-spin → spin-start → pre-reach → reach → post-reach → result
-(先読み)   (変動開始)   (リーチ前)  (リーチ)  (リーチ後)    (結果)
+pre-spin → spin-start → pre-reach → reach → reach-presentation → post-reach → result
+(先読み)   (変動開始)   (リーチ前)  (リーチ)  (リーチ演出)        (リーチ後)    (結果)
 ```
 
 `@pachinko/rendering` の `ReelPhase` からのマッピング：
@@ -93,6 +98,7 @@ pre-spin → spin-start → pre-reach → reach → post-reach → result
 | `spinning` | `spin-start` |
 | `stopping-left` | `pre-reach` |
 | `stopping-right` | `reach` |
+| `reach-presentation` | `reach-presentation` |
 | `stopping-center` | `post-reach` |
 | `result` | `result` |
 
@@ -150,6 +156,93 @@ interface EffectCondition {
 ### `connectRenderer(renderer, engine): disconnect`
 
 `@pachinko/rendering` のコールバックをエフェクトエンジンに自動接続し、アニメーションループを管理します。
+
+## 背景レイヤー
+
+背景エンジンはリールCanvasの背後に描画し、モード別・フェーズ別の背景切り替えとスムーズなトランジションをサポートします。
+
+### クイックスタート
+
+```typescript
+import {
+  createBackgroundEngine,
+  connectBackgroundEngine,
+  colorBg,
+  gradientBg,
+  particleBg,
+} from "@pachinko/effects";
+
+const bgEngine = createBackgroundEngine(bgCanvas, {
+  modeBackgrounds: {
+    normal: gradientBg({ colors: ["#0a0a1a", "#1a1a3e"], speed: 0.3 }),
+    kakuhen: gradientBg({ colors: ["#3a0000", "#660022"], speed: 1 }),
+    jitan: particleBg({ count: 50, color: "#4488ff", speed: 1.5 }),
+  },
+  rules: [
+    {
+      id: "reach-bg",
+      condition: { phase: ["reach", "reach-presentation"], isReach: true },
+      source: gradientBg({ colors: ["#330000", "#990000"], speed: 2 }),
+      transition: { type: "crossfade", duration: 300 },
+    },
+  ],
+  defaultTransition: { type: "fade", duration: 500 },
+});
+
+connectBackgroundEngine(renderer, bgEngine);
+```
+
+### 背景ソース
+
+| ファクトリ | 説明 |
+|-----------|------|
+| `colorBg(color)` | 単色塗りつぶし |
+| `imageBg(image)` | ImageBitmap（カバーフィット） |
+| `videoBg(video)` | HTMLVideoElement（再生/停止を自動管理） |
+| `canvasBg(renderFn)` | カスタムCanvas 2D描画関数 |
+| `gradientBg(options?)` | 回転アニメーショングラデーション |
+| `particleBg(options?)` | パーティクルフィールドアニメーション |
+
+### `createBackgroundEngine(canvas, config): BackgroundEngine`
+
+| メソッド | 説明 |
+|----------|------|
+| `start(drawResult)` | 抽選結果をセットしフェーズオーバーライドをリセット |
+| `setMode(mode)` | モード別背景をトランジション付きで切り替え |
+| `setPhase(phase)` | フェーズルールを評価し一時的な背景オーバーライド |
+| `setReelStop(position, symbol)` | リール停止情報を更新（条件評価用） |
+| `tick(now)` | フレーム描画 |
+| `resize(width, height)` | キャンバスサイズ変更 |
+| `destroy()` | クリーンアップ（動画停止、フレームキャンセル） |
+
+### `connectBackgroundEngine(renderer, bgEngine): disconnect`
+
+`@pachinko/rendering` のフェーズ変化・リール停止イベントを背景エンジンに接続し、アニメーションループを管理します。
+
+## リーチ演出
+
+エフェクトエンジンはリーチ演出をサポートします — リーチプレゼンテーションフェーズでカスタムエフェクトシーケンスを再生し、ユーザー確認を待つことができます。
+
+```typescript
+const engine = createEffectsEngine(canvas, {
+  rules: [...],
+  reachPresentations: [
+    {
+      id: "normal-reach",
+      condition: { isReach: true },
+      effects: [sequence(
+        textOverlay("リーチ!", { ... }),
+        textOverlay("ボタンを押せ!", { ... }),
+      )],
+      requireConfirm: true,
+      confirmReadyAt: 1500, // 確認ボタンが表示されるまでのms
+    },
+  ],
+});
+
+engine.onConfirmReady(() => showButton());
+engine.onReachPresentationEnd(() => hideButton());
+```
 
 ## ライセンス
 

@@ -80,8 +80,12 @@ packages/effects/src/
 ├── timeline.ts        # タイムライン構築・tick
 ├── rule-evaluator.ts  # ルール条件評価
 ├── renderer.ts        # Canvas描画
-├── engine.ts          # メインオーケストレーター
-└── adapter.ts         # @pachinko/rendering連携
+├── engine.ts              # メインオーケストレーター
+├── adapter.ts             # @pachinko/rendering連携
+├── background-types.ts    # 背景レイヤー型定義
+├── background-engine.ts   # 背景エンジン (createBackgroundEngine)
+├── background-renderer.ts # 背景描画ヘルパー
+└── background-presets.ts  # 背景プリセット (colorBg, gradientBg, particleBg等)
 ```
 
 ## @pachinko/tracker の構造

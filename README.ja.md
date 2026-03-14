@@ -10,7 +10,7 @@
 |------------|------|------------|
 | [@pachinko/lottery](./packages/lottery/) | 重み付き抽選・多段階選択・状態依存の確率変動を備えた抽選エンジン | `0.1.0` |
 | [@pachinko/rendering](./packages/rendering/) | OffscreenCanvas + Worker 対応の Canvas 2D リールアニメーションレンダラー | `0.1.0` |
-| [@pachinko/effects](./packages/effects/) | 宣言的な演出エフェクトエンジン — フラッシュ・シェイク・テキストオーバーレイ・コンポーザブルなパイプライン | `0.1.0` |
+| [@pachinko/effects](./packages/effects/) | 宣言的な演出エフェクトエンジン — フラッシュ・シェイク・テキストオーバーレイ・背景レイヤー・コンポーザブルなパイプライン | `0.1.0` |
 | [@pachinko/tracker](./packages/tracker/) | セッションデータトラッキングと Canvas 可視化 — スランプグラフ・大当たり履歴チャート・データランプ風統計パネル | `0.1.0` |
 
 ## はじめに

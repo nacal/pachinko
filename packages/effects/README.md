@@ -1,8 +1,8 @@
 # @pachinko/effects
 
-Declarative presentation effects engine for pachinko — flash, shake, text overlays, and composable effect pipelines.
+Declarative presentation effects engine for pachinko — flash, shake, text overlays, background layers, and composable effect pipelines.
 
-Define rules that map game events (reach, oatari, specific reel stops) to visual effects. Effects are rendered on a Canvas overlay, separate from the reel canvas.
+Define rules that map game events (reach, oatari, specific reel stops) to visual effects. Effects are rendered on a Canvas overlay, separate from the reel canvas. Background layers render behind the reels with mode/phase-reactive switching.
 
 ## Features
 
@@ -10,6 +10,11 @@ Define rules that map game events (reach, oatari, specific reel stops) to visual
 - Built-in primitives: flash, textOverlay, backgroundChange, shake, fade, imageOverlay, custom
 - Composable effects: `sequence`, `parallel`, `stagger`
 - Canvas overlay rendering (separate layer from reel canvas)
+- **Background layer system** with mode-based and phase-based switching
+- Background sources: color, image, video, custom Canvas draw functions
+- Animated presets: `gradientBg`, `particleBg`
+- Smooth transitions: cut, fade, crossfade
+- Reach presentation system with `confirmReadyAt` timing
 - Shake offset export for applying to external canvases
 - Adapter for `@pachinko/rendering` integration
 - Easing functions library
@@ -82,7 +87,7 @@ reelRenderer.spin(result);
 The effects engine uses its own phase system mapped from rendering phases:
 
 ```
-pre-spin → spin-start → pre-reach → reach → post-reach → result
+pre-spin → spin-start → pre-reach → reach → reach-presentation → post-reach → result
 ```
 
 Mapping from `@pachinko/rendering` `ReelPhase`:
@@ -92,6 +97,7 @@ Mapping from `@pachinko/rendering` `ReelPhase`:
 | `spinning` | `spin-start` |
 | `stopping-left` | `pre-reach` |
 | `stopping-right` | `reach` |
+| `reach-presentation` | `reach-presentation` |
 | `stopping-center` | `post-reach` |
 | `result` | `result` |
 
@@ -149,6 +155,93 @@ All fields are AND-combined. Array values are OR-combined. Omitted fields match 
 ### `connectRenderer(renderer, engine): disconnect`
 
 Automatically connects `@pachinko/rendering` callbacks to the effects engine and manages the animation loop.
+
+## Background Layer
+
+The background engine renders behind the reel canvas, supporting mode-based and phase-based background switching with smooth transitions.
+
+### Quick Start
+
+```typescript
+import {
+  createBackgroundEngine,
+  connectBackgroundEngine,
+  colorBg,
+  gradientBg,
+  particleBg,
+} from "@pachinko/effects";
+
+const bgEngine = createBackgroundEngine(bgCanvas, {
+  modeBackgrounds: {
+    normal: gradientBg({ colors: ["#0a0a1a", "#1a1a3e"], speed: 0.3 }),
+    kakuhen: gradientBg({ colors: ["#3a0000", "#660022"], speed: 1 }),
+    jitan: particleBg({ count: 50, color: "#4488ff", speed: 1.5 }),
+  },
+  rules: [
+    {
+      id: "reach-bg",
+      condition: { phase: ["reach", "reach-presentation"], isReach: true },
+      source: gradientBg({ colors: ["#330000", "#990000"], speed: 2 }),
+      transition: { type: "crossfade", duration: 300 },
+    },
+  ],
+  defaultTransition: { type: "fade", duration: 500 },
+});
+
+connectBackgroundEngine(renderer, bgEngine);
+```
+
+### Background Sources
+
+| Factory | Description |
+|---------|-------------|
+| `colorBg(color)` | Solid color fill |
+| `imageBg(image)` | ImageBitmap with cover fit |
+| `videoBg(video)` | HTMLVideoElement (auto play/pause managed) |
+| `canvasBg(renderFn)` | Custom Canvas 2D draw function |
+| `gradientBg(options?)` | Animated rotating gradient |
+| `particleBg(options?)` | Animated particle field |
+
+### `createBackgroundEngine(canvas, config): BackgroundEngine`
+
+| Method | Description |
+|--------|-------------|
+| `start(drawResult)` | Set draw result and reset phase overrides |
+| `setMode(mode)` | Switch mode-based background with transition |
+| `setPhase(phase)` | Evaluate phase-based rules for temporary overrides |
+| `setReelStop(position, symbol)` | Update reel stop for condition matching |
+| `tick(now)` | Render frame |
+| `resize(width, height)` | Update canvas dimensions |
+| `destroy()` | Clean up (pause videos, cancel frames) |
+
+### `connectBackgroundEngine(renderer, bgEngine): disconnect`
+
+Connects `@pachinko/rendering` phase/reel-stop events to the background engine and manages its animation loop.
+
+## Reach Presentation
+
+The effects engine supports reach presentations — custom effect sequences that play when reels enter the reach-presentation phase, with optional user confirmation.
+
+```typescript
+const engine = createEffectsEngine(canvas, {
+  rules: [...],
+  reachPresentations: [
+    {
+      id: "normal-reach",
+      condition: { isReach: true },
+      effects: [sequence(
+        textOverlay("リーチ!", { ... }),
+        textOverlay("ボタンを押せ!", { ... }),
+      )],
+      requireConfirm: true,
+      confirmReadyAt: 1500, // ms until confirm button appears
+    },
+  ],
+});
+
+engine.onConfirmReady(() => showButton());
+engine.onReachPresentationEnd(() => hideButton());
+```
 
 ## License
 
