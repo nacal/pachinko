@@ -7,14 +7,16 @@
 ## 特徴
 
 - 条件マッチングによるルールベースのエフェクトトリガー
-- 組み込みプリミティブ: flash, textOverlay, backgroundChange, shake, fade, imageOverlay, custom
+- 組み込みプリミティブ: flash, textOverlay, backgroundChange, shake, fade, imageOverlay, vignette, shockwave, screenWipe, pulseWave, rainbowFlash, custom
 - エフェクト合成: `sequence`（順次）、`parallel`（並列）、`stagger`（ずらし）
 - Canvasオーバーレイ描画（リールCanvasとは別レイヤー）
 - **背景レイヤーシステム** — モード別・フェーズ別の背景切り替え
 - 背景ソース: 色、画像、動画、カスタムCanvas描画関数
 - アニメーションプリセット: `gradientBg`（グラデーション）、`particleBg`（パーティクル）
 - スムーズなトランジション: カット、フェード、クロスフェード
-- リーチ演出システム（`confirmReadyAt` による確認タイミング制御）
+- 段階別リーチ演出システム（ノーマル / SP / SPSP / ストーリー）とフルスクリーンモード
+- `onPresentationMode` コールバックによるフルスクリーンリーチ時のリール縮小化
+- `pseudoRestartOverlay` による擬似連オーバーレイの呼び出し側設定
 - シェイクオフセットの外部公開（リールCanvasにも適用可能）
 - `@pachinko/rendering` 連携アダプター
 - イージング関数ライブラリ
@@ -112,6 +114,11 @@ pre-spin → spin-start → pre-reach → reach → reach-presentation → post-
 | `shake(options?)` | 画面揺れ（減衰する強度） |
 | `fade(options?)` | フェードイン/アウト |
 | `imageOverlay(image, options?)` | 画像オーバーレイ（フェードイン/アウト付き） |
+| `vignette(options?)` | 周辺減光（パルス付きオプション） |
+| `shockwave(options?)` | 拡大リング衝撃波 |
+| `screenWipe(options?)` | 方向指定スクリーンワイプ |
+| `pulseWave(options?)` | 同心円パルスウェーブ |
+| `rainbowFlash(options?)` | 虹色サイクルフラッシュ |
 | `custom(renderFn, options?)` | カスタム描画関数 |
 
 ## コンポーザー
@@ -149,6 +156,12 @@ interface EffectCondition {
 | `tick(now)` | フレーム描画 |
 | `getShakeOffset()` | 現在のシェイクオフセット `{ x, y }` を取得 |
 | `onComplete(callback)` | 完了コールバックを登録 |
+| `onReachPresentationEnd(callback)` | リーチ演出終了コールバックを登録 |
+| `isInReachPresentation()` | リーチ演出中かどうかを取得 |
+| `confirmReachPresentation()` | リーチ演出中のユーザー確認を通知 |
+| `onConfirmReady(callback)` | 確認可能になった時のコールバックを登録 |
+| `onPresentationMode(callback)` | フルスクリーン演出モードの変化を通知 |
+| `getReachTier()` | 現在のリーチ段階を取得（`ReachTier \| null`） |
 | `skipToResult()` | 全エフェクトをスキップ |
 | `resize(width, height)` | キャンバスサイズ変更 |
 | `destroy()` | クリーンアップ |

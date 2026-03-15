@@ -77,7 +77,7 @@ packages/effects/src/
 ├── types.ts           # 全型定義
 ├── easing.ts          # イージング関数
 ├── utils.ts           # lerp, color補間等
-├── primitives.ts      # エフェクトファクトリ (flash, textOverlay, shake等)
+├── primitives.ts      # エフェクトファクトリ (flash, textOverlay, shake, vignette, shockwave, screenWipe, pulseWave, rainbowFlash等)
 ├── composer.ts        # sequence/parallel/stagger
 ├── timeline.ts        # タイムライン構築・tick
 ├── rule-evaluator.ts  # ルール条件評価

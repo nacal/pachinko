@@ -7,14 +7,16 @@ Define rules that map game events (reach, oatari, specific reel stops) to visual
 ## Features
 
 - Rule-based effect triggering with condition matching
-- Built-in primitives: flash, textOverlay, backgroundChange, shake, fade, imageOverlay, custom
+- Built-in primitives: flash, textOverlay, backgroundChange, shake, fade, imageOverlay, vignette, shockwave, screenWipe, pulseWave, rainbowFlash, custom
 - Composable effects: `sequence`, `parallel`, `stagger`
 - Canvas overlay rendering (separate layer from reel canvas)
 - **Background layer system** with mode-based and phase-based switching
 - Background sources: color, image, video, custom Canvas draw functions
 - Animated presets: `gradientBg`, `particleBg`
 - Smooth transitions: cut, fade, crossfade
-- Reach presentation system with `confirmReadyAt` timing
+- Tiered reach presentation system (Normal / SP / SPSP / Story) with fullscreen mode
+- Reel miniaturization via `onPresentationMode` callback during fullscreen reach
+- Caller-configurable pseudo-restart overlay via `pseudoRestartOverlay`
 - Shake offset export for applying to external canvases
 - Adapter for `@pachinko/rendering` integration
 - Easing functions library
@@ -111,6 +113,11 @@ Mapping from `@pachinko/rendering` `ReelPhase`:
 | `shake(options?)` | Screen shake with decaying intensity |
 | `fade(options?)` | Fade in or fade out |
 | `imageOverlay(image, options?)` | Image overlay with fade in/out |
+| `vignette(options?)` | Darkened vignette border with optional pulse |
+| `shockwave(options?)` | Expanding ring shockwave |
+| `screenWipe(options?)` | Directional screen wipe transition |
+| `pulseWave(options?)` | Concentric pulse ring waves |
+| `rainbowFlash(options?)` | Rainbow hue cycling flash |
 | `custom(renderFn, options?)` | Custom render function |
 
 ## Composers
@@ -148,6 +155,12 @@ All fields are AND-combined. Array values are OR-combined. Omitted fields match 
 | `tick(now)` | Render frame |
 | `getShakeOffset()` | Get current shake offset `{ x, y }` |
 | `onComplete(callback)` | Register completion callback |
+| `onReachPresentationEnd(callback)` | Register reach presentation end callback |
+| `isInReachPresentation()` | Check if currently in reach presentation |
+| `confirmReachPresentation()` | Signal user confirmation during reach |
+| `onConfirmReady(callback)` | Register callback when confirm becomes available |
+| `onPresentationMode(callback)` | Register fullscreen presentation mode changes |
+| `getReachTier()` | Get current reach tier (`ReachTier \| null`) |
 | `skipToResult()` | Skip all effects |
 | `resize(width, height)` | Update canvas dimensions |
 | `destroy()` | Clean up |
