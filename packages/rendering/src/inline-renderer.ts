@@ -36,7 +36,14 @@ function computeReelSpeed(
       return reelIndex === 1 ? 1 : 0;
 
     case "spinning": {
-      const spinUp = progress(elapsed, timing.spinUpDuration);
+      // Brief reverse bounce before accelerating forward
+      const bounceDuration = timing.spinUpDuration * 0.15;
+      const bounceStrength = 0.6;
+      if (elapsed < bounceDuration) {
+        const p = progress(elapsed, bounceDuration);
+        return -bounceStrength * Math.sin(p * Math.PI);
+      }
+      const spinUp = progress(elapsed - bounceDuration, timing.spinUpDuration - bounceDuration);
       return easeInQuad(spinUp);
     }
 
@@ -277,9 +284,7 @@ export function createInlineReelRenderer(
         cancelAnimationFrame(animFrameId);
       }
       animState = startSpin(result, performance.now(), symbols);
-      scrollOffsets[0] = 0;
-      scrollOffsets[1] = 0;
-      scrollOffsets[2] = 0;
+      // Keep scrollOffsets — reels continue from where they stopped
       stopStartOffsets[0] = 0;
       stopStartOffsets[1] = 0;
       stopStartOffsets[2] = 0;
