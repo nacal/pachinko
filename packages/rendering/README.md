@@ -114,6 +114,7 @@ Creates a renderer with automatic OffscreenCanvas + Worker support. Falls back t
 | `onPhaseChange(callback: (phase: ReelPhase) => void)` | Register callback fired on phase transitions |
 | `onReelStop(callback: (reel: ReelPosition, symbol: SymbolSpec) => void)` | Register callback fired when an individual reel stops |
 | `skipToResult()` | Force stop immediately (skip animation) |
+| `resolveReach()` | Resume center reel after reach presentation (no-op if not in reach phase) |
 | `resize(width: number, height: number)` | Resize the renderer to match canvas size changes |
 | `destroy()` | Clean up worker, cancel animation frames |
 
@@ -139,6 +140,9 @@ interface RenderConfig {
 | `stopInterval` | 500 | Time between each reel stop (ms) |
 | `reachSlowdownDuration` | 2000 | Center reel slowdown during reach (ms) |
 | `stopBounceDuration` | 150 | Bounce effect on reel stop (ms) |
+| `enableReachPresentation` | false | Enable reach-presentation phase that pauses before center reel stops |
+| `pseudoStopDuration` | 400 | Duration of pseudo-stop freeze before reels restart (ms) |
+| `pseudoRestartDuration` | 600 | Duration of pseudo-restart spin-up (ms) |
 
 #### `StyleConfig`
 
@@ -157,10 +161,10 @@ interface RenderConfig {
 The reel animation progresses through these phases:
 
 ```
-idle → spinning → stopping-left → stopping-right → stopping-center → result
+idle → spinning → stopping-left → stopping-right → [pseudo-stop → pseudo-restart]* → [reach-presentation →] stopping-center → result
 ```
 
-During reach presentations, the `stopping-center` phase uses a longer slowdown with eased deceleration.
+During reach, the `stopping-center` phase uses a longer slowdown with eased deceleration. When `enableReachPresentation` is enabled and the result is a reach, the renderer pauses in `reach-presentation` phase until `resolveReach()` is called. Pseudo-consecutive cycles (`pseudoCount`) add stop/restart phases before the reach.
 
 ## Key Types
 

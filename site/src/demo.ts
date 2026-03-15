@@ -780,7 +780,21 @@ const preReadingConfig: PreReadingScenarioConfig = {
       weight: 30,
     },
   ],
-  telopRules: [],
+  telopRules: [
+    {
+      id: "oatari-telop",
+      condition: { outcome: "oatari" },
+      spinOffset: -1,
+      telop: {
+        text: "激アツ！チャンス到来！",
+        font: "bold 32px sans-serif",
+        color: "#ffd700",
+        direction: "right-to-left",
+        timing: { delay: 500, duration: 3000 },
+      },
+      weight: 30,
+    },
+  ],
   groupPredictionRules: [
     {
       id: "group-flash",

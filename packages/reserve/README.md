@@ -97,6 +97,20 @@ Canvas renderer for reserve ball indicators with animations.
 | `queue()` | Current queue entries |
 | `destroy()` | Clean up timers and state |
 
+#### Orchestrator Config
+
+| Property | Description |
+|----------|-------------|
+| `machine` | Machine spec from `@pachinko/lottery` |
+| `rng` | RNG instance |
+| `maxReserve` | Max queue size (default: 4) |
+| `autoSpinDelay` | Delay before auto-consuming next entry (ms) |
+| `preReading` | Pre-reading color rules config |
+| `onSpin` | Callback when an entry starts spinning |
+| `onQueueChange` | Callback when queue changes |
+| `resolveScenario?` | Custom scenario resolver, receives `(drawResult, context)` where context contains `{ queuePosition, queueSize, existingEntries }` |
+| `applyScenarioPatches?` | Callback to apply patches to existing queue entries `(entries, patches) => void` |
+
 ## License
 
 MIT

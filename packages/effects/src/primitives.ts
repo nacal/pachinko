@@ -281,10 +281,8 @@ export function screenWipe(options: ScreenWipeOptions = {}): CustomEffect {
       ctx.fillStyle = color;
 
       if (direction === "left" || direction === "right") {
-        const dir = direction === "left" ? 1 : -1;
         const coverX = direction === "left" ? 0 : width * (1 - coverProgress);
         const coverW = width * coverProgress;
-        const revealX = direction === "left" ? 0 : width * (1 - revealProgress);
         const revealW = width * revealProgress;
 
         if (progress < 0.5) {

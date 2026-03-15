@@ -97,6 +97,20 @@ orchestrator.notifySpinComplete();
 | `queue()` | 現在のキューエントリ |
 | `destroy()` | タイマーと状態のクリーンアップ |
 
+#### オーケストレーター設定
+
+| プロパティ | 説明 |
+|-----------|------|
+| `machine` | `@pachinko/lottery` の機種定義 |
+| `rng` | RNG インスタンス |
+| `maxReserve` | 最大保留数（デフォルト: 4） |
+| `autoSpinDelay` | 自動消化までの遅延（ms） |
+| `preReading` | 先読み色ルール設定 |
+| `onSpin` | エントリのスピン開始時コールバック |
+| `onQueueChange` | キュー変更時コールバック |
+| `resolveScenario?` | シナリオ解決関数。`(drawResult, context)` を受け取り、context は `{ queuePosition, queueSize, existingEntries }` を含む |
+| `applyScenarioPatches?` | 既存キューエントリへのパッチ適用コールバック `(entries, patches) => void` |
+
 ## ライセンス
 
 MIT
