@@ -87,10 +87,13 @@ function computeStopProgress(
     return easeOutQuad(progress(elapsed, timing.stopInterval));
   }
   if (phase === "stopping-center" && reelIndex === 1) {
-    if (isReach && timing.enableReachPresentation) return -1;
-    const duration = isReach ? timing.reachSlowdownDuration : timing.stopInterval;
+    // During pseudo cycles, use normal stop speed (not reach slowdown)
+    const inPseudo = state.pseudoRemaining > 0;
+    if (isReach && timing.enableReachPresentation && !inPseudo) return -1;
+    const useReachTiming = isReach && !inPseudo;
+    const duration = useReachTiming ? timing.reachSlowdownDuration : timing.stopInterval;
     const p = progress(elapsed, duration);
-    return isReach ? easeInOutSine(p) : easeOutQuad(p);
+    return useReachTiming ? easeInOutSine(p) : easeOutQuad(p);
   }
   return -1;
 }

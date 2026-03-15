@@ -39,6 +39,7 @@ export function createEffectsEngine(
 
   let activePhaseState: PhaseState | null = null;
   let activeAmbientStates: PhaseState[] = [];
+  let activeTelopState: PhaseState | null = null;
   let currentShakeOffset: ShakeOffset = { x: 0, y: 0 };
   let destroyed = false;
   let pseudoRestartCount = 0;
@@ -188,38 +189,41 @@ export function createEffectsEngine(
       activeAmbientStates = indexedStates.map((is) => is.state);
     }
 
-    // Add telop as a custom effect ambient
-    if (currentScenario.telop) {
-      const telop = currentScenario.telop;
-      const telopEffect: EffectPrimitive = {
-        type: "custom",
-        timing: telop.timing,
-        render: (ctx2d, progress, w, h) => {
-          const direction = telop.direction ?? "right-to-left";
-          ctx2d.save();
-          ctx2d.font = telop.font ?? "bold 36px sans-serif";
-          ctx2d.fillStyle = telop.color ?? "#ffffff";
-          ctx2d.textBaseline = "middle";
-          const textWidth = ctx2d.measureText(telop.text).width;
-          let x: number;
-          let y: number;
-          if (direction === "right-to-left") {
-            x = w - (w + textWidth) * progress;
-            y = h * 0.15;
-          } else if (direction === "left-to-right") {
-            x = -textWidth + (w + textWidth) * progress;
-            y = h * 0.15;
-          } else {
-            x = (w - textWidth) / 2;
-            y = h + (0 - h - 40) * progress;
-          }
-          ctx2d.fillText(telop.text, x, y);
-          ctx2d.restore();
-        },
-      };
-      const timeline = buildTimeline([telopEffect]);
-      activeAmbientStates.push({ phase, timeline, startTime: now });
-    }
+  }
+
+  function buildTelopState(now: number): void {
+    activeTelopState = null;
+    if (!currentScenario?.telop) return;
+
+    const telop = currentScenario.telop;
+    const telopEffect: EffectPrimitive = {
+      type: "custom",
+      timing: telop.timing,
+      render: (ctx2d, progress, w, h) => {
+        const direction = telop.direction ?? "right-to-left";
+        ctx2d.save();
+        ctx2d.font = telop.font ?? "bold 36px sans-serif";
+        ctx2d.fillStyle = telop.color ?? "#ffffff";
+        ctx2d.textBaseline = "middle";
+        const textWidth = ctx2d.measureText(telop.text).width;
+        let x: number;
+        let y: number;
+        if (direction === "right-to-left") {
+          x = w - (w + textWidth) * progress;
+          y = h * 0.15;
+        } else if (direction === "left-to-right") {
+          x = -textWidth + (w + textWidth) * progress;
+          y = h * 0.15;
+        } else {
+          x = (w - textWidth) / 2;
+          y = h + (0 - h - 40) * progress;
+        }
+        ctx2d.fillText(telop.text, x, y);
+        ctx2d.restore();
+      },
+    };
+    const timeline = buildTimeline([telopEffect]);
+    activeTelopState = { phase: "spin-start", timeline, startTime: now };
   }
 
   function activatePhase(phase: EffectPhase, now: number): void {
@@ -235,6 +239,11 @@ export function createEffectsEngine(
     if (phase === "reach-presentation") {
       activateReachPresentation(now);
       return;
+    }
+
+    // Build telop once (persists across phases)
+    if (!activeTelopState && currentScenario?.telop) {
+      buildTelopState(now);
     }
 
     // Build ambient effect timelines for this phase
@@ -279,6 +288,7 @@ export function createEffectsEngine(
     reelStops.right = undefined;
     activePhaseState = null;
     activeAmbientStates = [];
+    activeTelopState = null;
     currentPhase = null;
     currentShakeOffset = { x: 0, y: 0 };
     reachPresentationActive = false;
@@ -323,6 +333,13 @@ export function createEffectsEngine(
     activeAmbientStates = activeAmbientStates.filter(
       (state) => !renderTimelineState(state, now),
     );
+
+    // Render telop independently (persists across phase transitions)
+    if (activeTelopState) {
+      if (renderTimelineState(activeTelopState, now)) {
+        activeTelopState = null;
+      }
+    }
 
     if (!activePhaseState) return;
 
@@ -400,6 +417,7 @@ export function createEffectsEngine(
     firePresentationMode(false);
     activePhaseState = null;
     activeAmbientStates = [];
+    activeTelopState = null;
     currentShakeOffset = { x: 0, y: 0 };
     ctx.clearRect(0, 0, width, height);
   }
@@ -413,6 +431,7 @@ export function createEffectsEngine(
     destroyed = true;
     activePhaseState = null;
     activeAmbientStates = [];
+    activeTelopState = null;
     reachPresentationActive = false;
     currentReachTier = null;
     firePresentationMode(false);

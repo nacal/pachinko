@@ -100,10 +100,9 @@ function nextPhaseOf(
     case "stopping-left":
       return "stopping-right";
     case "stopping-right":
-      // If pseudo-consecutive cycles remain, enter pseudo-stop
-      if (state.pseudoRemaining > 0) return "pseudo-stop";
-      // Otherwise proceed to reach-presentation or stopping-center
-      if (state.isReach && enableReachPresentation) return "reach-presentation";
+      // Reach-presentation pauses before center stops
+      if (state.isReach && enableReachPresentation && state.pseudoRemaining <= 0)
+        return "reach-presentation";
       return "stopping-center";
     case "pseudo-stop":
       return "pseudo-restart";
@@ -112,6 +111,8 @@ function nextPhaseOf(
     case "reach-presentation":
       return "stopping-center";
     case "stopping-center":
+      // After center stops in pseudo cycle, enter pseudo-stop
+      if (state.pseudoRemaining > 0) return "pseudo-stop";
       return "result";
     default:
       return phase;
@@ -121,8 +122,9 @@ function nextPhaseOf(
 function phaseDuration(
   phase: ReelPhase,
   timing: TimingConfig,
-  isReach: boolean,
+  state: ReelAnimationState,
 ): number {
+  const { isReach } = state;
   switch (phase) {
     case "spinning":
       return timing.spinUpDuration + timing.baseSpinDuration;
@@ -134,12 +136,16 @@ function phaseDuration(
       return timing.pseudoStopDuration;
     case "pseudo-restart":
       return timing.pseudoRestartDuration;
-    case "stopping-center":
-      if (isReach && timing.enableReachPresentation) return 1;
+    case "stopping-center": {
+      // During pseudo cycles, always use normal stop speed
+      const inPseudo = state.pseudoRemaining > 0;
+      if (isReach && timing.enableReachPresentation && !inPseudo) return 1;
+      const useReachTiming = isReach && !inPseudo;
       return (
-        (isReach ? timing.reachSlowdownDuration : timing.stopInterval) +
+        (useReachTiming ? timing.reachSlowdownDuration : timing.stopInterval) +
         timing.stopBounceDuration
       );
+    }
     case "reach-presentation":
       return Infinity; // Waits for resolveReach()
     default:
@@ -158,7 +164,7 @@ export function tick(
   }
 
   const elapsed = now - state.phaseStartTime;
-  const duration = phaseDuration(state.phase, timing, state.isReach);
+  const duration = phaseDuration(state.phase, timing, state);
 
   if (elapsed >= duration) {
     const next = nextPhaseOf(state.phase, state, timing.enableReachPresentation);

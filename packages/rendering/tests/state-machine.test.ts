@@ -156,11 +156,13 @@ describe("pseudo-consecutive (擬似連)", () => {
     expect(state.pseudoRemaining).toBe(2);
   });
 
-  it("transitions stopping-right → pseudo-stop when pseudoRemaining > 0", () => {
+  it("transitions stopping-right → stopping-center → pseudo-stop when pseudoRemaining > 0", () => {
     let state = startSpin(pseudoResult, 0);
     state = tick(state, spinDuration, timing);
     state = tick(state, state.phaseStartTime + stopDuration, timing);
     expect(state.phase).toBe("stopping-right");
+    state = tick(state, state.phaseStartTime + stopDuration, timing);
+    expect(state.phase).toBe("stopping-center");
     state = tick(state, state.phaseStartTime + stopDuration, timing);
     expect(state.phase).toBe("pseudo-stop");
   });
@@ -168,6 +170,7 @@ describe("pseudo-consecutive (擬似連)", () => {
   it("transitions pseudo-stop → pseudo-restart", () => {
     let state = startSpin(pseudoResult, 0);
     state = tick(state, spinDuration, timing);
+    state = tick(state, state.phaseStartTime + stopDuration, timing);
     state = tick(state, state.phaseStartTime + stopDuration, timing);
     state = tick(state, state.phaseStartTime + stopDuration, timing);
     expect(state.phase).toBe("pseudo-stop");
@@ -178,6 +181,7 @@ describe("pseudo-consecutive (擬似連)", () => {
   it("transitions pseudo-restart → stopping-left and decrements pseudoRemaining", () => {
     let state = startSpin(pseudoResult, 0);
     state = tick(state, spinDuration, timing);
+    state = tick(state, state.phaseStartTime + stopDuration, timing);
     state = tick(state, state.phaseStartTime + stopDuration, timing);
     state = tick(state, state.phaseStartTime + stopDuration, timing);
     state = tick(state, state.phaseStartTime + timing.pseudoStopDuration, timing);
@@ -207,11 +211,12 @@ describe("pseudo-consecutive (擬似連)", () => {
       "spinning",
       "stopping-left",
       "stopping-right",
+      "stopping-center",
       "pseudo-stop",
       "pseudo-restart",
       "stopping-left",
       "stopping-right",
-      "stopping-center",
+      "stopping-center",  // final stop (pseudoRemaining = 0)
       "result",
     ]);
   });
@@ -235,10 +240,12 @@ describe("pseudo-consecutive (擬似連)", () => {
       "spinning",
       "stopping-left",
       "stopping-right",
+      "stopping-center",
       "pseudo-stop",      // cycle 1
       "pseudo-restart",
       "stopping-left",
       "stopping-right",
+      "stopping-center",
       "pseudo-stop",      // cycle 2
       "pseudo-restart",
       "stopping-left",
@@ -283,15 +290,20 @@ describe("pseudo-consecutive (擬似連)", () => {
   it("pseudoRemaining is 0 when final stopping-center is reached", () => {
     let state = startSpin(pseudoSingleResult, 0);
     let time = 0;
+    let lastStoppingCenter: typeof state | null = null;
 
     for (let i = 0; i < 500; i++) {
       time += 50;
       state = tick(state, time, timing);
-      if (state.phase === "stopping-center") break;
+      if (state.phase === "stopping-center") {
+        lastStoppingCenter = state;
+      }
+      if (state.phase === "result") break;
     }
 
-    expect(state.phase).toBe("stopping-center");
-    expect(state.pseudoRemaining).toBe(0);
+    expect(lastStoppingCenter).not.toBeNull();
+    expect(lastStoppingCenter!.phase).toBe("stopping-center");
+    expect(lastStoppingCenter!.pseudoRemaining).toBe(0);
   });
 });
 
