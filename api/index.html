@@ -222,6 +222,12 @@ const engine = createEffectsEngine(overlayCanvas, {
             <tr><td><code>tick(now)</code></td><td>Render current frame</td></tr>
             <tr><td><code>getShakeOffset()</code></td><td>Get current shake offset <code>{ x, y }</code> for applying to other canvases</td></tr>
             <tr><td><code>onComplete(cb)</code></td><td>Register callback for timeline completion</td></tr>
+            <tr><td><code>onReachPresentationEnd(cb)</code></td><td>Callback when reach presentation resolves</td></tr>
+            <tr><td><code>isInReachPresentation()</code></td><td>Check if currently in a reach presentation</td></tr>
+            <tr><td><code>confirmReachPresentation()</code></td><td>Signal user confirmation (button press)</td></tr>
+            <tr><td><code>onConfirmReady(cb)</code></td><td>Callback when confirm becomes available</td></tr>
+            <tr><td><code>onPresentationMode(cb)</code></td><td>Callback for fullscreen presentation mode changes</td></tr>
+            <tr><td><code>getReachTier()</code></td><td>Get current reach tier (<code>ReachTier | null</code>)</td></tr>
             <tr><td><code>skipToResult()</code></td><td>Skip all effects immediately</td></tr>
             <tr><td><code>resize(w, h)</code></td><td>Update canvas dimensions</td></tr>
             <tr><td><code>destroy()</code></td><td>Clean up</td></tr>
@@ -249,6 +255,21 @@ const engine = createEffectsEngine(overlayCanvas, {
 
         <h3><code>imageOverlay(image, options?): ImageOverlayEffect</code></h3>
         <p class="api-desc">Image overlay with position, size, and fade in/out.</p>
+
+        <h3><code>vignette(options?): CustomEffect</code></h3>
+        <p class="api-desc">Darkened vignette border with optional pulse effect.</p>
+
+        <h3><code>shockwave(options?): CustomEffect</code></h3>
+        <p class="api-desc">Expanding ring shockwave from center.</p>
+
+        <h3><code>screenWipe(options?): CustomEffect</code></h3>
+        <p class="api-desc">Directional screen wipe transition (left, right, top, bottom).</p>
+
+        <h3><code>pulseWave(options?): CustomEffect</code></h3>
+        <p class="api-desc">Concentric pulse ring waves expanding from center.</p>
+
+        <h3><code>rainbowFlash(options?): CustomEffect</code></h3>
+        <p class="api-desc">Rainbow hue cycling full-screen flash.</p>
 
         <h3><code>custom(renderFn, options?): CustomEffect</code></h3>
         <p class="api-desc">Custom render function receiving <code>(ctx, progress, width, height)</code>.</p>
@@ -388,6 +409,7 @@ connectBackgroundEngine(renderer, bgEngine);</code></pre>
             <tr><td><code>EffectCondition</code></td><td>Condition object for rule matching</td></tr>
             <tr><td><code>EffectPrimitive</code></td><td>Union of all primitive effect types</td></tr>
             <tr><td><code>EffectOrComposite</code></td><td>Primitive or composite (sequence/parallel/stagger)</td></tr>
+            <tr><td><code>ReachTier</code></td><td><code>"normal" | "sp" | "spsp" | "story"</code></td></tr>
             <tr><td><code>EffectsEngine</code></td><td>Main engine interface</td></tr>
             <tr><td><code>BackgroundEngine</code></td><td>Background layer engine interface</td></tr>
             <tr><td><code>BackgroundSource</code></td><td>Background source (color, image, video, canvas)</td></tr>
@@ -647,6 +669,7 @@ renderer.spin({ outcome: "oatari", reels, isReach: true });</code></pre>
             <tr><td><code>onPhaseChange(cb)</code></td><td>Register callback for phase transitions</td></tr>
             <tr><td><code>onReelStop(cb)</code></td><td>Register callback for individual reel stops (left → right → center)</td></tr>
             <tr><td><code>skipToResult()</code></td><td>Skip animation and show final result immediately</td></tr>
+            <tr><td><code>resolveReach()</code></td><td>Resume center reel after reach presentation</td></tr>
             <tr><td><code>resize(w, h)</code></td><td>Resize the renderer</td></tr>
             <tr><td><code>destroy()</code></td><td>Clean up worker and cancel animations</td></tr>
           </tbody>
@@ -655,8 +678,8 @@ renderer.spin({ outcome: "oatari", reels, isReach: true });</code></pre>
 
       <div class="api-section">
         <h3>Animation Phases</h3>
-        <pre><code class="language-typescript">idle → spinning → stopping-left → stopping-center → stopping-right → result</code></pre>
-        <p class="api-desc">When <code>isReach === true</code>, the <code>stopping-center</code> phase uses a dramatic slowdown effect.</p>
+        <pre><code class="language-typescript">idle → spinning → stopping-left → stopping-right → [pseudo-stop → pseudo-restart]* → [reach-presentation →] stopping-center → result</code></pre>
+        <p class="api-desc">When <code>isReach === true</code>, the <code>stopping-center</code> phase uses a dramatic slowdown effect. With <code>enableReachPresentation</code>, the renderer pauses at <code>reach-presentation</code> until <code>resolveReach()</code> is called.</p>
       </div>
 
       <div class="api-section">
@@ -682,6 +705,9 @@ renderer.spin({ outcome: "oatari", reels, isReach: true });</code></pre>
             <tr><td><code>stopInterval</code></td><td>500ms</td><td>Time between each reel stopping</td></tr>
             <tr><td><code>reachSlowdownDuration</code></td><td>2000ms</td><td>Dramatic slowdown for center reel on reach</td></tr>
             <tr><td><code>stopBounceDuration</code></td><td>150ms</td><td>Bounce effect duration on stop</td></tr>
+            <tr><td><code>enableReachPresentation</code></td><td>false</td><td>Enable reach-presentation pause phase</td></tr>
+            <tr><td><code>pseudoStopDuration</code></td><td>400ms</td><td>Pseudo-stop freeze duration</td></tr>
+            <tr><td><code>pseudoRestartDuration</code></td><td>600ms</td><td>Pseudo-restart spin-up duration</td></tr>
           </tbody>
         </table>
       </div>
@@ -702,7 +728,7 @@ renderer.spin({ outcome: "oatari", reels, isReach: true });</code></pre>
           <thead><tr><th>Type</th><th>Description</th></tr></thead>
           <tbody>
             <tr><td><code>DrawResultInput</code></td><td><code>{ outcome, reels, isReach }</code> — minimal input for rendering</td></tr>
-            <tr><td><code>ReelPhase</code></td><td><code>"idle" | "spinning" | "stopping-left" | "stopping-center" | "stopping-right" | "result"</code></td></tr>
+            <tr><td><code>ReelPhase</code></td><td><code>"idle" | "spinning" | "stopping-left" | "stopping-right" | "pseudo-stop" | "pseudo-restart" | "reach-presentation" | "stopping-center" | "result"</code></td></tr>
             <tr><td><code>SymbolSpec</code></td><td><code>{ id, label, isKakuhen }</code></td></tr>
             <tr><td><code>ReelPosition</code></td><td><code>"left" | "center" | "right"</code></td></tr>
             <tr><td><code>ReelRenderer</code></td><td>Main renderer interface with spin, skip, resize, destroy</td></tr>
