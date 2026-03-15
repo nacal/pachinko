@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { flash, textOverlay, backgroundChange, shake, fade, custom } from "../src/primitives";
+import { flash, textOverlay, backgroundChange, shake, fade, custom, shockwave, screenWipe, pulseWave, rainbowFlash } from "../src/primitives";
 
 describe("flash", () => {
   it("creates with defaults", () => {
@@ -87,6 +87,56 @@ describe("fade", () => {
   it("creates fade-in", () => {
     const f = fade({ direction: "in" });
     expect(f.direction).toBe("in");
+  });
+});
+
+describe("shockwave", () => {
+  it("creates with defaults", () => {
+    const s = shockwave();
+    expect(s.type).toBe("custom");
+    expect(s.timing.duration).toBe(1000);
+  });
+
+  it("creates with custom options", () => {
+    const s = shockwave({ color: "#ff0000", lineWidth: 5, timing: { duration: 500 } });
+    expect(s.type).toBe("custom");
+    expect(s.timing.duration).toBe(500);
+  });
+});
+
+describe("screenWipe", () => {
+  it("creates with defaults", () => {
+    const s = screenWipe();
+    expect(s.type).toBe("custom");
+    expect(s.timing.duration).toBe(1000);
+  });
+
+  it("creates with custom direction", () => {
+    const s = screenWipe({ direction: "top", timing: { duration: 600 } });
+    expect(s.type).toBe("custom");
+    expect(s.timing.duration).toBe(600);
+  });
+});
+
+describe("pulseWave", () => {
+  it("creates with defaults", () => {
+    const p = pulseWave();
+    expect(p.type).toBe("custom");
+    expect(p.timing.duration).toBe(1000);
+  });
+});
+
+describe("rainbowFlash", () => {
+  it("creates with defaults", () => {
+    const r = rainbowFlash();
+    expect(r.type).toBe("custom");
+    expect(r.timing.duration).toBe(1000);
+  });
+
+  it("creates with custom options", () => {
+    const r = rainbowFlash({ opacity: 0.8, cycleCount: 5, timing: { duration: 2000 } });
+    expect(r.type).toBe("custom");
+    expect(r.timing.duration).toBe(2000);
   });
 });
 

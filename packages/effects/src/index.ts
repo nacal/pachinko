@@ -59,6 +59,7 @@ export type {
   AmbientEffectPatch,
   PreReadingScenarioResult,
   QueueScenarioContext,
+  ReachTier,
   ReelRendererLike,
   BackgroundRenderFn,
   BackgroundSource,
@@ -86,7 +87,7 @@ export {
 export { lerp, clamp, lerpColor, parseHexColor } from "./utils";
 
 // ─── Primitives ───
-export { flash, textOverlay, backgroundChange, shake, fade, imageOverlay, vignette, custom } from "./primitives";
+export { flash, textOverlay, backgroundChange, shake, fade, imageOverlay, vignette, shockwave, screenWipe, pulseWave, rainbowFlash, custom } from "./primitives";
 export type {
   FlashOptions,
   TextOverlayOptions,
@@ -95,6 +96,10 @@ export type {
   FadeOptions,
   ImageOverlayOptions,
   VignetteOptions,
+  ShockwaveOptions,
+  ScreenWipeOptions,
+  PulseWaveOptions,
+  RainbowFlashOptions,
   CustomEffectOptions,
 } from "./primitives";
 

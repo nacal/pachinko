@@ -8,6 +8,7 @@ import type {
   EffectsEngineConfig,
   PresentationScenario,
   ReachPresentation,
+  ReachTier,
   ReelPosition,
   ShakeOffset,
   SymbolSpec,
@@ -44,6 +45,17 @@ export function createEffectsEngine(
 
   const completeCallbacks: Array<() => void> = [];
 
+  // ─── Presentation mode (fullscreen) ───
+  let currentReachTier: ReachTier | null = null;
+  let currentFullscreen = false;
+  const presentationModeCallbacks: Array<(fullscreen: boolean) => void> = [];
+
+  function firePresentationMode(fullscreen: boolean): void {
+    if (currentFullscreen === fullscreen) return;
+    currentFullscreen = fullscreen;
+    for (const cb of presentationModeCallbacks) cb(fullscreen);
+  }
+
   // ─── Reach presentation state ───
   let reachPresentationActive = false;
   let presentationComplete = false;
@@ -69,6 +81,8 @@ export function createEffectsEngine(
       : presentationComplete;
     if (resolved) {
       reachPresentationActive = false;
+      currentReachTier = null;
+      firePresentationMode(false);
       for (const cb of reachPresentationEndCallbacks) cb();
     }
   }
@@ -90,6 +104,11 @@ export function createEffectsEngine(
       reachPresentationActive = true;
       presentationComplete = false;
       userConfirmed = false;
+      currentReachTier = resolved.tier ?? "normal";
+
+      if (resolved.fullscreen) {
+        firePresentationMode(true);
+      }
 
       if (currentConfirmReadyAt <= 0) {
         confirmReadyFired = true;
@@ -130,6 +149,7 @@ export function createEffectsEngine(
     reachPresentationActive = true;
     presentationComplete = false;
     userConfirmed = false;
+    currentReachTier = "normal";
 
     if (currentConfirmReadyAt <= 0) {
       confirmReadyFired = true;
@@ -243,36 +263,10 @@ export function createEffectsEngine(
       }
     }
 
-    // Auto-inject ×N text overlay on pseudo-restart
-    if (phase === "pseudo-restart" && pseudoRestartCount > 0) {
-      const label = `×${pseudoRestartCount + 1}`;
-      const pseudoOverlay: EffectPrimitive = {
-        type: "custom",
-        timing: { delay: 0, duration: 500 },
-        render: (ctx2d, progress, w, h) => {
-          ctx2d.save();
-          // Scale-in and fade-out animation
-          const scalePhase = Math.min(progress / 0.3, 1);
-          const fadePhase = progress > 0.6 ? (progress - 0.6) / 0.4 : 0;
-          const scale = 0.5 + 0.5 * scalePhase;
-          const alpha = 1 - fadePhase;
-
-          ctx2d.globalAlpha = alpha;
-          ctx2d.font = `bold ${Math.round(72 * scale)}px sans-serif`;
-          ctx2d.textAlign = "center";
-          ctx2d.textBaseline = "middle";
-
-          // Stroke for readability
-          ctx2d.strokeStyle = "rgba(0, 0, 0, 0.8)";
-          ctx2d.lineWidth = 4;
-          ctx2d.strokeText(label, w / 2, h / 2);
-
-          ctx2d.fillStyle = "#ffd700";
-          ctx2d.fillText(label, w / 2, h / 2);
-          ctx2d.restore();
-        },
-      };
-      const overlayTimeline = buildTimeline([pseudoOverlay]);
+    // Pseudo-restart overlay (caller-defined)
+    if (phase === "pseudo-restart" && pseudoRestartCount > 0 && config.pseudoRestartOverlay) {
+      const effect = config.pseudoRestartOverlay(pseudoRestartCount + 1);
+      const overlayTimeline = buildTimeline([effect]);
       activeAmbientStates.push({ phase, timeline: overlayTimeline, startTime: now });
     }
   }
@@ -292,6 +286,8 @@ export function createEffectsEngine(
     userConfirmed = false;
     confirmReadyFired = false;
     pseudoRestartCount = 0;
+    currentReachTier = null;
+    firePresentationMode(false);
   }
 
   function setPhase(phase: EffectPhase): void {
@@ -387,7 +383,6 @@ export function createEffectsEngine(
   function confirmReachPresentation(): void {
     if (!reachPresentationActive) return;
     userConfirmed = true;
-    // Force presentation complete — don't wait for effects timeline
     presentationComplete = true;
     activePhaseState = null;
     currentShakeOffset = { x: 0, y: 0 };
@@ -396,12 +391,13 @@ export function createEffectsEngine(
   }
 
   function skipToResult(): void {
-    // Clear reach presentation state
     if (reachPresentationActive) {
       reachPresentationActive = false;
       presentationComplete = false;
       userConfirmed = false;
     }
+    currentReachTier = null;
+    firePresentationMode(false);
     activePhaseState = null;
     activeAmbientStates = [];
     currentShakeOffset = { x: 0, y: 0 };
@@ -418,9 +414,12 @@ export function createEffectsEngine(
     activePhaseState = null;
     activeAmbientStates = [];
     reachPresentationActive = false;
+    currentReachTier = null;
+    firePresentationMode(false);
     completeCallbacks.length = 0;
     reachPresentationEndCallbacks.length = 0;
     confirmReadyCallbacks.length = 0;
+    presentationModeCallbacks.length = 0;
   }
 
   return {
@@ -434,6 +433,12 @@ export function createEffectsEngine(
     isInReachPresentation,
     confirmReachPresentation,
     onConfirmReady,
+    onPresentationMode(callback: (fullscreen: boolean) => void): void {
+      presentationModeCallbacks.push(callback);
+    },
+    getReachTier(): ReachTier | null {
+      return currentReachTier;
+    },
     skipToResult,
     resize,
     destroy,

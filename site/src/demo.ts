@@ -20,6 +20,11 @@ import {
   shake,
   fade,
   vignette,
+  shockwave,
+  screenWipe,
+  pulseWave,
+  rainbowFlash,
+  custom,
   sequence,
   parallel,
   colorBg,
@@ -294,66 +299,210 @@ const effectRules: EffectRule[] = [
   },
 ];
 
-// ─── Reach presentations ───
+// ─── Reach presentation definitions ───
+
+const normalReachEffects = sequence(
+  textOverlay("リーチ!", {
+    font: "bold 72px sans-serif",
+    color: "#ff0000",
+    timing: { delay: 0, duration: 1500 },
+    fadeIn: 200,
+    fadeOut: 300,
+  }),
+  parallel(
+    flash({ color: "#ff4444", opacity: 0.5, count: 3, timing: { delay: 0, duration: 800 } }),
+    shake({ intensity: 6, frequency: 25, timing: { delay: 0, duration: 800 } }),
+  ),
+  textOverlay("ボタンを押せ!", {
+    font: "bold 48px sans-serif",
+    color: "#ffd700",
+    timing: { delay: 0, duration: 3000 },
+    fadeIn: 100,
+    fadeOut: 0,
+  }),
+);
+
+const spReachEffects = sequence(
+  // ノーマルリーチ開始
+  textOverlay("リーチ!", {
+    font: "bold 72px sans-serif",
+    color: "#ff0000",
+    timing: { delay: 0, duration: 1200 },
+    fadeIn: 200,
+    fadeOut: 200,
+  }),
+  // 発展演出
+  parallel(
+    fade({ direction: "out", color: "#000000", timing: { delay: 0, duration: 400 } }),
+    shake({ intensity: 10, frequency: 35, timing: { delay: 0, duration: 400 } }),
+  ),
+  parallel(
+    fade({ direction: "in", color: "#000000", timing: { delay: 0, duration: 300 } }),
+    textOverlay("発展!", {
+      font: "bold 84px sans-serif",
+      color: "#ff4444",
+      timing: { delay: 0, duration: 1200 },
+      fadeIn: 100,
+      fadeOut: 300,
+    }),
+    shockwave({ color: "#ff4444", lineWidth: 4, timing: { delay: 0, duration: 1200 } }),
+  ),
+  // SP演出
+  parallel(
+    flash({ color: "#ff0000", opacity: 0.6, count: 6, timing: { delay: 0, duration: 1500 } }),
+    shake({ intensity: 12, frequency: 40, timing: { delay: 0, duration: 1500 } }),
+    pulseWave({ color: "#ff6644", count: 4, timing: { delay: 0, duration: 1500 } }),
+  ),
+  parallel(
+    flash({ color: "#ffd700", opacity: 0.7, count: 3, timing: { delay: 0, duration: 600 } }),
+    shockwave({ color: "#ffd700", lineWidth: 5, timing: { delay: 0, duration: 600 } }),
+  ),
+  textOverlay("ボタンを押せ!", {
+    font: "bold 56px sans-serif",
+    color: "#ffd700",
+    timing: { delay: 0, duration: 3000 },
+    fadeIn: 100,
+    fadeOut: 0,
+  }),
+);
+
+const spspReachEffects = sequence(
+  // ノーマルリーチ
+  textOverlay("リーチ!", {
+    font: "bold 72px sans-serif",
+    color: "#ff0000",
+    timing: { delay: 0, duration: 1000 },
+    fadeIn: 200,
+    fadeOut: 200,
+  }),
+  // 第一発展
+  parallel(
+    screenWipe({ color: "#220000", direction: "left", timing: { delay: 0, duration: 600 } }),
+    shake({ intensity: 8, frequency: 30, timing: { delay: 0, duration: 600 } }),
+  ),
+  parallel(
+    textOverlay("発展!", {
+      font: "bold 84px sans-serif",
+      color: "#ff4444",
+      timing: { delay: 0, duration: 1000 },
+      fadeIn: 100,
+      fadeOut: 200,
+    }),
+    shockwave({ color: "#ff4444", timing: { delay: 0, duration: 1000 } }),
+  ),
+  // SP演出
+  parallel(
+    flash({ color: "#ff0000", opacity: 0.5, count: 4, timing: { delay: 0, duration: 1200 } }),
+    pulseWave({ color: "#ff4444", count: 3, timing: { delay: 0, duration: 1200 } }),
+    shake({ intensity: 10, frequency: 35, timing: { delay: 0, duration: 1200 } }),
+  ),
+  // 第二発展
+  parallel(
+    screenWipe({ color: "#000033", direction: "right", timing: { delay: 0, duration: 600 } }),
+    shake({ intensity: 15, frequency: 50, timing: { delay: 0, duration: 600 } }),
+  ),
+  parallel(
+    textOverlay("さらに発展!!", {
+      font: "bold 96px sans-serif",
+      color: "#ffd700",
+      timing: { delay: 0, duration: 1500 },
+      fadeIn: 100,
+      fadeOut: 300,
+    }),
+    rainbowFlash({ opacity: 0.4, cycleCount: 2, timing: { delay: 0, duration: 1500 } }),
+    shockwave({ color: "#ffd700", lineWidth: 5, maxRadius: 1.0, timing: { delay: 200, duration: 1300 } }),
+  ),
+  // SPSP クライマックス
+  parallel(
+    flash({ color: "#ff0000", opacity: 0.8, count: 8, timing: { delay: 0, duration: 2000 } }),
+    shake({ intensity: 18, frequency: 50, timing: { delay: 0, duration: 2000 } }),
+    pulseWave({ color: "#ffd700", count: 5, lineWidth: 3, timing: { delay: 0, duration: 2000 } }),
+    vignette({ color: "#ff0000", opacity: 0.5, spread: 0.6, pulseCount: 4, timing: { delay: 0, duration: 2000 } }),
+  ),
+  parallel(
+    shockwave({ color: "#ffffff", lineWidth: 6, timing: { delay: 0, duration: 800 } }),
+    flash({ color: "#ffd700", opacity: 0.9, count: 1, timing: { delay: 0, duration: 400 } }),
+  ),
+  textOverlay("ボタンを押せ!", {
+    font: "bold 56px sans-serif",
+    color: "#ffd700",
+    timing: { delay: 0, duration: 3000 },
+    fadeIn: 100,
+    fadeOut: 0,
+  }),
+);
+
+const storyReachEffects = sequence(
+  // Scene 1: タイトル
+  fade({ direction: "out", color: "#000000", timing: { delay: 0, duration: 500 } }),
+  parallel(
+    fade({ direction: "in", color: "#000011", timing: { delay: 0, duration: 800 } }),
+    textOverlay("運命の刻", {
+      font: "bold 64px serif",
+      color: "#8888ff",
+      timing: { delay: 0, duration: 2000 },
+      fadeIn: 500,
+      fadeOut: 500,
+    }),
+  ),
+  // Scene 2: 緊張感の高まり
+  parallel(
+    vignette({ color: "#000044", opacity: 0.6, spread: 0.5, pulseCount: 2, pulseMin: 0.5, timing: { delay: 0, duration: 2500 } }),
+    textOverlay("光が集まる…", {
+      font: "bold 48px serif",
+      color: "#aaaaff",
+      timing: { delay: 0, duration: 2500 },
+      fadeIn: 400,
+      fadeOut: 400,
+    }),
+    pulseWave({ color: "#4444ff", count: 2, timing: { delay: 500, duration: 2000 } }),
+  ),
+  // Scene 3: 覚醒
+  parallel(
+    screenWipe({ color: "#110022", direction: "bottom", timing: { delay: 0, duration: 500 } }),
+    shake({ intensity: 5, frequency: 20, timing: { delay: 0, duration: 500 } }),
+  ),
+  parallel(
+    textOverlay("覚醒!", {
+      font: "bold 96px serif",
+      color: "#ff4488",
+      timing: { delay: 0, duration: 1500 },
+      fadeIn: 200,
+      fadeOut: 300,
+    }),
+    shockwave({ color: "#ff4488", lineWidth: 4, timing: { delay: 0, duration: 1500 } }),
+    flash({ color: "#ff2266", opacity: 0.4, count: 3, timing: { delay: 0, duration: 1500 } }),
+  ),
+  // Scene 4: クライマックス
+  parallel(
+    flash({ color: "#ff0000", opacity: 0.6, count: 6, timing: { delay: 0, duration: 2000 } }),
+    shake({ intensity: 15, frequency: 45, timing: { delay: 0, duration: 2000 } }),
+    rainbowFlash({ opacity: 0.3, cycleCount: 2, timing: { delay: 0, duration: 2000 } }),
+    pulseWave({ color: "#ff8844", count: 4, lineWidth: 3, timing: { delay: 0, duration: 2000 } }),
+  ),
+  // Scene 5: 最終インパクト
+  parallel(
+    flash({ color: "#ffffff", opacity: 1.0, count: 1, timing: { delay: 0, duration: 300 } }),
+    shockwave({ color: "#ffffff", lineWidth: 8, maxRadius: 1.0, timing: { delay: 0, duration: 800 } }),
+  ),
+  textOverlay("ボタンを押せ!", {
+    font: "bold 56px sans-serif",
+    color: "#ffd700",
+    timing: { delay: 0, duration: 3000 },
+    fadeIn: 100,
+    fadeOut: 0,
+  }),
+);
+
+// ─── Reach presentations (dynamic mode fallback) ───
 
 const reachPresentations: ReachPresentation[] = [
   {
     id: "normal-reach",
     condition: { isReach: true },
-    effects: [
-      sequence(
-        textOverlay("リーチ!", {
-          font: "bold 72px sans-serif",
-          color: "#ff0000",
-          timing: { delay: 0, duration: 1500 },
-          fadeIn: 200,
-          fadeOut: 300,
-        }),
-        parallel(
-          flash({ color: "#ff4444", opacity: 0.5, count: 5, timing: { delay: 0, duration: 1000 } }),
-          shake({ intensity: 8, frequency: 30, timing: { delay: 0, duration: 1000 } }),
-        ),
-        textOverlay("ボタンを押せ!", {
-          font: "bold 48px sans-serif",
-          color: "#ffd700",
-          timing: { delay: 0, duration: 3000 },
-          fadeIn: 100,
-          fadeOut: 0,
-        }),
-      ),
-    ],
+    effects: [normalReachEffects],
     requireConfirm: true,
-    confirmReadyAt: 2500, // After リーチ!(1500) + flash/shake(1000)
-  },
-  {
-    id: "kakuhen-super-reach",
-    condition: { isReach: true, gameMode: "kakuhen" },
-    effects: [
-      sequence(
-        flash({ color: "#ff0000", opacity: 0.8, count: 10, timing: { delay: 0, duration: 2000 } }),
-        textOverlay("超激アツ!", {
-          font: "bold 96px sans-serif",
-          color: "#ff0000",
-          timing: { delay: 0, duration: 2000 },
-          fadeIn: 300,
-          fadeOut: 500,
-        }),
-        parallel(
-          shake({ intensity: 15, frequency: 50, timing: { delay: 0, duration: 1500 } }),
-          flash({ color: "#ffd700", opacity: 0.6, count: 8, timing: { delay: 0, duration: 1500 } }),
-        ),
-        textOverlay("ボタンを押せ!", {
-          font: "bold 48px sans-serif",
-          color: "#ffd700",
-          timing: { delay: 0, duration: 3000 },
-          fadeIn: 100,
-          fadeOut: 0,
-        }),
-      ),
-    ],
-    priority: 10,
-    requireConfirm: true,
-    confirmReadyAt: 5500, // After flash(2000) + 超激アツ!(2000) + shake/flash(1500)
+    confirmReadyAt: 2300,
   },
 ];
 
@@ -376,50 +525,6 @@ const backgroundRules: BackgroundRule[] = [
 ];
 
 // ─── Scenario config (presentation distribution tables) ───
-
-// Shared reach presentation effects
-const normalReachEffects = sequence(
-  textOverlay("リーチ!", {
-    font: "bold 72px sans-serif",
-    color: "#ff0000",
-    timing: { delay: 0, duration: 1500 },
-    fadeIn: 200,
-    fadeOut: 300,
-  }),
-  parallel(
-    flash({ color: "#ff4444", opacity: 0.5, count: 5, timing: { delay: 0, duration: 1000 } }),
-    shake({ intensity: 8, frequency: 30, timing: { delay: 0, duration: 1000 } }),
-  ),
-  textOverlay("ボタンを押せ!", {
-    font: "bold 48px sans-serif",
-    color: "#ffd700",
-    timing: { delay: 0, duration: 3000 },
-    fadeIn: 100,
-    fadeOut: 0,
-  }),
-);
-
-const superReachEffects = sequence(
-  flash({ color: "#ff0000", opacity: 0.8, count: 10, timing: { delay: 0, duration: 2000 } }),
-  textOverlay("超激アツ!", {
-    font: "bold 96px sans-serif",
-    color: "#ff0000",
-    timing: { delay: 0, duration: 2000 },
-    fadeIn: 300,
-    fadeOut: 500,
-  }),
-  parallel(
-    shake({ intensity: 15, frequency: 50, timing: { delay: 0, duration: 1500 } }),
-    flash({ color: "#ffd700", opacity: 0.6, count: 8, timing: { delay: 0, duration: 1500 } }),
-  ),
-  textOverlay("ボタンを押せ!", {
-    font: "bold 48px sans-serif",
-    color: "#ffd700",
-    timing: { delay: 0, duration: 3000 },
-    fadeIn: 100,
-    fadeOut: 0,
-  }),
-);
 
 const scenarioConfig: ScenarioConfig = {
   defaultColor: "white",
@@ -448,18 +553,39 @@ const scenarioConfig: ScenarioConfig = {
       ],
       reachPresentations: [
         {
-          presentationId: "kakuhen-super-reach",
-          weight: 70,
-          effects: [superReachEffects],
+          presentationId: "spsp-reach",
+          weight: 25,
+          effects: [spspReachEffects],
           requireConfirm: true,
-          confirmReadyAt: 5500,
+          confirmReadyAt: 8700, // 1000+600+1000+1200+600+1500+2000+800
+          tier: "spsp",
+          fullscreen: true,
+        },
+        {
+          presentationId: "story-reach",
+          weight: 15,
+          effects: [storyReachEffects],
+          requireConfirm: true,
+          confirmReadyAt: 8600, // 500+800+2500+500+1500+2000+800
+          tier: "story",
+          fullscreen: true,
+        },
+        {
+          presentationId: "sp-reach",
+          weight: 35,
+          effects: [spReachEffects],
+          requireConfirm: true,
+          confirmReadyAt: 4900, // 1200+400+1200+1500+600
+          tier: "sp",
+          fullscreen: true,
         },
         {
           presentationId: "normal-reach",
-          weight: 30,
+          weight: 25,
           effects: [normalReachEffects],
           requireConfirm: true,
-          confirmReadyAt: 2500,
+          confirmReadyAt: 2300, // 1500+800
+          tier: "normal",
         },
       ],
       phaseEffects: [
@@ -524,17 +650,29 @@ const scenarioConfig: ScenarioConfig = {
       reachPresentations: [
         {
           presentationId: "normal-reach",
-          weight: 90,
+          weight: 70,
           effects: [normalReachEffects],
           requireConfirm: true,
-          confirmReadyAt: 2500,
+          confirmReadyAt: 2300,
+          tier: "normal",
         },
         {
-          presentationId: "kakuhen-super-reach",
-          weight: 10,
-          effects: [superReachEffects],
+          presentationId: "sp-reach",
+          weight: 25,
+          effects: [spReachEffects],
           requireConfirm: true,
-          confirmReadyAt: 5500,
+          confirmReadyAt: 4900,
+          tier: "sp",
+          fullscreen: true,
+        },
+        {
+          presentationId: "spsp-reach",
+          weight: 5,
+          effects: [spspReachEffects],
+          requireConfirm: true,
+          confirmReadyAt: 8700,
+          tier: "spsp",
+          fullscreen: true,
         },
       ],
     },
@@ -743,8 +881,39 @@ async function init(): Promise<void> {
   const effectsEngine = createEffectsEngine(effectsCanvas, {
     rules: effectRules,
     reachPresentations,
+    pseudoRestartOverlay: (count) => custom(
+      (ctx2d, progress, w, h) => {
+        const label = `×${count}`;
+        ctx2d.save();
+        const scalePhase = Math.min(progress / 0.3, 1);
+        const fadePhase = progress > 0.6 ? (progress - 0.6) / 0.4 : 0;
+        const scale = 0.5 + 0.5 * scalePhase;
+        const alpha = 1 - fadePhase;
+
+        ctx2d.globalAlpha = alpha;
+        ctx2d.font = `bold ${Math.round(72 * scale)}px sans-serif`;
+        ctx2d.textAlign = "center";
+        ctx2d.textBaseline = "middle";
+        ctx2d.strokeStyle = "rgba(0, 0, 0, 0.8)";
+        ctx2d.lineWidth = 4;
+        ctx2d.strokeText(label, w / 2, h / 2);
+        ctx2d.fillStyle = "#ffd700";
+        ctx2d.fillText(label, w / 2, h / 2);
+        ctx2d.restore();
+      },
+      { timing: { duration: 500 } },
+    ),
   });
   connectRenderer(renderer, effectsEngine);
+
+  // ─── Reel miniaturization on fullscreen reach ───
+  effectsEngine.onPresentationMode((fullscreen) => {
+    if (fullscreen) {
+      canvas.classList.add("miniaturized");
+    } else {
+      canvas.classList.remove("miniaturized");
+    }
+  });
 
   // Show/hide confirm button based on reach presentation state
   function showConfirmButton(): void {
@@ -950,7 +1119,7 @@ async function init(): Promise<void> {
 
   function buildForcedResult(
     trigger: string,
-  ): { result: DrawResult; pseudoCountOverride?: number } {
+  ): { result: DrawResult; pseudoCountOverride?: number; reachTierOverride?: string } {
     // Use the real draw pipeline, then override outcome/reels as needed
     const baseResult = draw(machine, gameState, rng);
 
@@ -1044,13 +1213,37 @@ async function init(): Promise<void> {
           },
         };
       }
+      case "sp-reach":
+      case "spsp-reach":
+      case "story-reach": {
+        // Force oatari with specific reach tier
+        const reels = drawReels(machine.symbols, "oatari", rng);
+        const bonusEntries = machine.bonusDistribution[gameState.mode];
+        const bonusType = bonusEntries && bonusEntries.length > 0
+          ? bonusEntries[Math.floor(rng.next() * bonusEntries.length)]!.value
+          : baseResult.bonusType;
+        const newState = nextState(gameState, "oatari", bonusType);
+        return {
+          result: {
+            ...baseResult,
+            outcome: "oatari",
+            reels,
+            isReach: true,
+            bonusType,
+            nextState: newState,
+          },
+          reachTierOverride: trigger === "sp-reach" ? "sp"
+            : trigger === "spsp-reach" ? "spsp"
+            : "story",
+        };
+      }
       default:
         return { result: baseResult };
     }
   }
 
   function doTriggeredSpin(trigger: string): void {
-    const { result, pseudoCountOverride } = buildForcedResult(trigger);
+    const { result, pseudoCountOverride, reachTierOverride } = buildForcedResult(trigger);
     const input = {
       outcome: result.outcome,
       reels: result.reels,
@@ -1064,10 +1257,29 @@ async function init(): Promise<void> {
       { queuePosition: 0, queueSize: 1, existingEntries: [] },
       scenarioRng,
     );
-    // Override pseudoCount if trigger specifies it
-    const finalScenario = pseudoCountOverride !== undefined
+    // Override pseudoCount or reachTier if trigger specifies it
+    let finalScenario = pseudoCountOverride !== undefined
       ? { ...scenario, pseudoCount: pseudoCountOverride }
       : scenario;
+    if (reachTierOverride) {
+      const tierEffects = reachTierOverride === "sp" ? spReachEffects
+        : reachTierOverride === "spsp" ? spspReachEffects
+        : storyReachEffects;
+      const tierConfirmAt = reachTierOverride === "sp" ? 4900
+        : reachTierOverride === "spsp" ? 8700
+        : 8600;
+      finalScenario = {
+        ...finalScenario,
+        reachPresentation: {
+          presentationId: `${reachTierOverride}-reach`,
+          effects: [tierEffects],
+          requireConfirm: true,
+          confirmReadyAt: tierConfirmAt,
+          tier: reachTierOverride as "sp" | "spsp" | "story",
+          fullscreen: true,
+        },
+      };
+    }
     const directEntry: ReserveEntry = {
       id: Date.now(),
       drawResult: result,

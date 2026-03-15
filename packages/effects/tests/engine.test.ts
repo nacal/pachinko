@@ -3,7 +3,7 @@ import { createEffectsEngine } from "../src/engine";
 import { flash, shake, textOverlay } from "../src/primitives";
 import { sequence } from "../src/composer";
 import { oatariResult, hazureResult, reachHazureResult } from "./fixtures/draw-results";
-import type { EffectRule } from "../src/types";
+import type { EffectRule, PresentationScenario } from "../src/types";
 
 function createMockCanvas() {
   const ctx = {
@@ -129,6 +129,106 @@ describe("createEffectsEngine", () => {
     canvas.ctx.clearRect.mockClear();
     engine.tick(now + 50);
     expect(canvas.ctx.clearRect).not.toHaveBeenCalled();
+  });
+
+  it("fires onPresentationMode(true) for fullscreen reach", () => {
+    const engine = createEffectsEngine(canvas as unknown as HTMLCanvasElement, { rules });
+    const cb = vi.fn();
+    engine.onPresentationMode(cb);
+
+    const scenario: PresentationScenario = {
+      color: "gold",
+      phaseEffects: [],
+      reachPresentation: {
+        presentationId: "sp-reach",
+        effects: [flash({ timing: { delay: 0, duration: 500 } })],
+        requireConfirm: true,
+        confirmReadyAt: 500,
+        tier: "sp",
+        fullscreen: true,
+      },
+    };
+
+    engine.start(oatariResult, scenario);
+    engine.setPhase("reach-presentation");
+    expect(cb).toHaveBeenCalledWith(true);
+    expect(engine.getReachTier()).toBe("sp");
+  });
+
+  it("fires onPresentationMode(false) when reach ends", () => {
+    const engine = createEffectsEngine(canvas as unknown as HTMLCanvasElement, { rules });
+    const cb = vi.fn();
+    engine.onPresentationMode(cb);
+
+    const scenario: PresentationScenario = {
+      color: "gold",
+      phaseEffects: [],
+      reachPresentation: {
+        presentationId: "sp-reach",
+        effects: [flash({ timing: { delay: 0, duration: 500 } })],
+        requireConfirm: true,
+        confirmReadyAt: 500,
+        tier: "sp",
+        fullscreen: true,
+      },
+    };
+
+    engine.start(oatariResult, scenario);
+    engine.setPhase("reach-presentation");
+    cb.mockClear();
+    engine.confirmReachPresentation();
+    expect(cb).toHaveBeenCalledWith(false);
+    expect(engine.getReachTier()).toBeNull();
+  });
+
+  it("does not fire onPresentationMode for non-fullscreen reach", () => {
+    const engine = createEffectsEngine(canvas as unknown as HTMLCanvasElement, { rules });
+    const cb = vi.fn();
+    engine.onPresentationMode(cb);
+
+    const scenario: PresentationScenario = {
+      color: "white",
+      phaseEffects: [],
+      reachPresentation: {
+        presentationId: "normal-reach",
+        effects: [flash({ timing: { delay: 0, duration: 300 } })],
+        requireConfirm: true,
+        confirmReadyAt: 300,
+        tier: "normal",
+        fullscreen: false,
+      },
+    };
+
+    engine.start(oatariResult, scenario);
+    engine.setPhase("reach-presentation");
+    expect(cb).not.toHaveBeenCalled();
+    expect(engine.getReachTier()).toBe("normal");
+  });
+
+  it("skipToResult resets presentation mode", () => {
+    const engine = createEffectsEngine(canvas as unknown as HTMLCanvasElement, { rules });
+    const cb = vi.fn();
+    engine.onPresentationMode(cb);
+
+    const scenario: PresentationScenario = {
+      color: "gold",
+      phaseEffects: [],
+      reachPresentation: {
+        presentationId: "sp-reach",
+        effects: [flash({ timing: { delay: 0, duration: 500 } })],
+        requireConfirm: true,
+        confirmReadyAt: 500,
+        tier: "sp",
+        fullscreen: true,
+      },
+    };
+
+    engine.start(oatariResult, scenario);
+    engine.setPhase("reach-presentation");
+    cb.mockClear();
+    engine.skipToResult();
+    expect(cb).toHaveBeenCalledWith(false);
+    expect(engine.getReachTier()).toBeNull();
   });
 
   it("setReelStop updates context for rule evaluation", () => {

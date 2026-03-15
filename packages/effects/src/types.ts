@@ -16,6 +16,10 @@ export interface ReelResult {
   readonly right: SymbolSpec;
 }
 
+// ─── Reach Tier ───
+
+export type ReachTier = "normal" | "sp" | "spsp" | "story";
+
 export type ReelPhase =
   | "idle"
   | "spinning"
@@ -224,6 +228,8 @@ export interface ShakeOffset {
 export interface EffectsEngineConfig {
   readonly rules: readonly EffectRule[];
   readonly reachPresentations?: readonly ReachPresentation[];
+  /** Optional factory for the pseudo-restart (擬似連) overlay effect. Called with the display count (2, 3, …). */
+  readonly pseudoRestartOverlay?: (count: number) => EffectOrComposite;
 }
 
 export interface EffectsEngine {
@@ -241,6 +247,10 @@ export interface EffectsEngine {
   confirmReachPresentation(): void;
   /** Register callback fired when confirm becomes available during reach presentation */
   onConfirmReady(callback: () => void): void;
+  /** Register callback fired when entering/leaving fullscreen presentation mode (reel miniaturization) */
+  onPresentationMode(callback: (fullscreen: boolean) => void): void;
+  /** Get current reach tier, or null if not in reach presentation */
+  getReachTier(): ReachTier | null;
   skipToResult(): void;
   resize(width: number, height: number): void;
   destroy(): void;
@@ -264,6 +274,8 @@ export interface ResolvedReachPresentation {
   readonly effects: readonly EffectOrComposite[];
   readonly requireConfirm: boolean;
   readonly confirmReadyAt: number;
+  readonly tier?: ReachTier;
+  readonly fullscreen?: boolean;
 }
 
 export interface PresentationScenario {
@@ -300,6 +312,8 @@ export interface ReachScenarioEntry {
   readonly effects: readonly EffectOrComposite[];
   readonly requireConfirm?: boolean;
   readonly confirmReadyAt?: number;
+  readonly tier?: ReachTier;
+  readonly fullscreen?: boolean;
 }
 
 export interface PhaseEffectScenarioEntry {

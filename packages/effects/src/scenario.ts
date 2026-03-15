@@ -125,6 +125,8 @@ function resolveReachPresentation(
     effects: selected.effects,
     requireConfirm: selected.requireConfirm !== false,
     confirmReadyAt: selected.confirmReadyAt ?? 0,
+    tier: selected.tier,
+    fullscreen: selected.fullscreen ?? (selected.tier !== undefined && selected.tier !== "normal"),
   };
 }
 
